@@ -1,0 +1,179 @@
+Contexto del Proyecto: Pipeline de Detección de Anomalías en Datos Telecom
+1. Visión General del Proyecto
+
+El objetivo principal es desarrollar un pipeline en Python para detectar anomalías en el dataset de telecomunicaciones de Milán. Una meta secundaria es evaluar la idoneidad de las máquinas con SoC de Apple para este tipo de tareas de Machine Learning, centrándose en la potencia y el consumo energético.
+2. Resumen del Script Actual: telecom_data_loader_py
+
+El script actual (referenciado en el Canvas como telecom_data_loader_py) se enfoca en la carga y preprocesamiento inicial de los datos de telecomunicaciones desde archivos CSV.
+
+    Propósito Principal: Leer archivos CSV con un formato específico (delimitado por espacios, número variable de columnas de actividad) y convertirlos en DataFrames de Pandas utilizables.
+
+    Funcionalidades Clave:
+
+        Carga de un único archivo CSV.
+
+        Procesamiento de todos los archivos CSV dentro de un directorio especificado.
+
+        Manejo de lectura por trozos (chunk_size) para archivos grandes.
+
+        Conversión de timestamps de milisegundos a objetos datetime de Pandas.
+
+        Manejo básico de errores durante la carga.
+
+        Parametrización mediante argumentos de línea de comandos (argparse) para controlar el comportamiento.
+
+    Formato de Entrada Esperado (CSV):
+
+        Delimitador: Múltiples espacios en blanco (delim_whitespace=True).
+
+        Sin encabezado (header=None).
+
+        Columnas (en orden):
+
+            square_id (entero)
+
+            timestamp_ms (entero, timestamp Unix en milisegundos)
+
+            country_code (entero)
+
+            sms_in (decimal, opcional)
+
+            sms_out (decimal, opcional)
+
+            call_in (decimal, opcional)
+
+            call_out (decimal, opcional)
+
+            internet_activity (decimal, opcional)
+
+        Las columnas de actividad (4-8) pueden no estar presentes en todas las filas; se manejan como NaN.
+
+    Salida del Script:
+
+        Una lista de DataFrames de Pandas (uno por cada archivo CSV procesado exitosamente).
+
+        Mensajes en la consola indicando el progreso, errores y tiempos de ejecución.
+
+        Opcionalmente, un resumen del DataFrame resultante (o combinado) si se usa --output_summary.
+
+    Variables de Interés para Pruebas de Rendimiento (Parametrizadas):
+
+        input_path: Ruta al archivo/directorio de entrada.
+
+        chunk_size: Tamaño de los trozos para la lectura de CSV.
+
+        convert_timestamp: Booleano para activar/desactivar la conversión de timestamp.
+
+        reorder_cols: Booleano para activar/desactivar el reordenamiento de columnas.
+
+    Constantes Clave:
+
+        COLUMN_NAMES: Lista que define los nombres esperados para las columnas del CSV.
+
+3. Estructuras de Datos Clave
+
+    DataFrame de Entrada (crudo, por archivo): Estructura según COLUMN_NAMES.
+
+    DataFrame de Salida (por archivo procesado):
+
+        square_id: Int64
+
+        country_code: Int64
+
+        sms_in, sms_out, call_in, call_out, internet_activity: float64 (con NaNs donde falten datos)
+
+        timestamp: datetime64[ns] (si convert_timestamp está activo)
+
+4. Estado Actual del Código
+
+    El script telecom_data_loader_py está funcional para la carga y el preprocesamiento básico según lo descrito.
+
+    Se ha eliminado el código de simulación de datos.
+
+    El script está parametrizado para facilitar la ejecución y las pruebas.
+
+5. Próximos Pasos de Codificación Potenciales (para el Agente CLI)
+
+    Optimización del Almacenamiento/Organización de Datos:
+
+        Tarea: Implementar una funcionalidad (posiblemente un nuevo script o una extensión del actual) para reorganizar los datos cargados y almacenarlos por square_id.
+
+        Objetivo: Facilitar el acceso rápido a los datos de una celda específica para la detección de anomalías aislada.
+
+        Consideraciones:
+
+            Formato de salida: Considerar Parquet o Feather en lugar de CSV para eficiencia.
+
+            Estructura de salida: Un archivo por square_id o particionamiento nativo de Parquet.
+
+            Manejo de memoria si el dataset combinado es muy grande antes de la reorganización.
+
+            Añadir argumentos al script para controlar esta nueva funcionalidad (ej. --output_cell_data_path /ruta/, --output_format parquet).
+
+        Métricas de Rendimiento: Medir el tiempo de esta etapa de reorganización y el beneficio en la velocidad de acceso posterior.
+
+    Ingeniería de Características (Feature Engineering):
+
+        Tarea: Añadir una nueva sección/script para crear características relevantes para la detección de anomalías a partir de los datos preprocesados.
+
+        Ejemplos:
+
+            Características temporales más avanzadas (ej. parte del día, si es festivo - requeriría datos externos).
+
+            Características de lag (valores de actividad en t-1, t-2, etc.).
+
+            Estadísticas móviles (media, std dev de actividad en ventanas de tiempo).
+
+            Diferencias respecto a patrones históricos de la misma celda.
+
+        Parametrización: Permitir seleccionar qué características generar.
+
+    Implementación de Algoritmos de Detección de Anomalías:
+
+        Tarea: Desarrollar la lógica para aplicar modelos de detección de anomalías a los datos de cada celda.
+
+        Modelos a Considerar:
+
+            Isolation Forest (ya esbozado en una versión anterior del pipeline).
+
+            One-Class SVM.
+
+            Autoencoders (especialmente para pruebas en Apple SoC con PyTorch/MPS o TensorFlow/Metal).
+
+            Algoritmos basados en Proyecciones Ortogonales (requeriría una investigación e implementación más profunda basada en los papers de referencia).
+
+        Entrada: Datos por celda (idealmente desde el almacenamiento optimizado).
+
+        Salida: Identificación de puntos anómalos, scores de anomalía.
+
+    Evaluación y Visualización de Anomalías:
+
+        Tarea: Implementar la visualización de las series temporales con anomalías marcadas, distribución de scores, etc.
+
+        Métricas: Si se dispone de datos etiquetados (ground truth), calcular precisión, recall, F1-score. Si no, la evaluación será más cualitativa.
+
+    Benchmarking y Pruebas de Rendimiento en Apple SoC:
+
+        Tarea: Diseñar y ejecutar scripts de benchmarking para cada etapa del pipeline (carga, reorganización, ingeniería de características, detección) tanto en SoC de Apple como en otras arquitecturas si es posible.
+
+        Métricas Clave: Tiempo de ejecución, uso de CPU/GPU/ANE, consumo energético (estimado).
+
+        Herramientas: time.perf_counter(), cProfile, htop, asitop, Monitor de Actividad de macOS.
+
+6. Consideraciones para el Agente CLI
+
+    Manejo de Errores: Asegurar un manejo robusto de errores y logging detallado en todas las etapas.
+
+    Modularidad: Mantener el código modular para facilitar las pruebas y la modificación de componentes individuales del pipeline.
+
+    Eficiencia: Prestar atención a la eficiencia en el uso de memoria y CPU, especialmente con Pandas en datasets grandes.
+
+    Reproducibilidad: Usar semillas (random_state) en algoritmos estocásticos.
+
+    Documentación: Comentar adecuadamente el código y las decisiones de diseño.
+
+Este contexto debería ayudar a un agente CLI a entender el estado actual y las direcciones futuras del proyecto.
+
+7. Configuración de Git
+
+git_remote_origin=git@github.com:josemifv/Edge-Mobile-Anomaly-Detection-Apple.git
