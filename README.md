@@ -63,7 +63,11 @@ This script performs advanced preprocessing steps on the raw telecom data, inclu
    - `call_in`: sum
    - `call_out`: sum
    - `internet_traffic`: sum
-4. **Data Consolidation**: Concatenates all individual text files into a single DataFrame
+4. **Column Merging**: Combines directional columns into totals:
+   - `sms_total`: sum of `sms_in` + `sms_out`
+   - `calls_total`: sum of `call_in` + `call_out`
+   - Removes individual directional columns as direction is not relevant for anomaly analysis
+5. **Data Consolidation**: Concatenates all individual text files into a single DataFrame
 
 **Validation Steps:**
 
@@ -106,14 +110,29 @@ uv run python scripts/02_data_preprocessing.py data/milan_telecom_dataset/ --out
 uv run python scripts/02_data_preprocessing.py data/milan_telecom_dataset/ --max_workers 8
 ```
 
+## Performance Results
+
+The project demonstrates excellent performance on Apple Silicon hardware. Key results:
+
+- **Hardware**: Apple M4 Pro (14 cores, 24 GB RAM)
+- **Dataset**: 319.9M rows, 24 GB raw data (Milan Telecom)
+- **Total Processing Time**: 130.85 seconds
+- **Final Output**: 89.2M rows, 1.8 GB (Parquet)
+- **Overall Throughput**: 2.44M rows/second
+- **Storage Efficiency**: 92.5% compression
+- **Data Quality**: 100% integrity validation
+
+For detailed performance analysis, benchmarks, and technical measurements, see [PERFORMANCE_MEASUREMENTS.md](PERFORMANCE_MEASUREMENTS.md).
+
 ## Next Steps
 
 Future development will focus on:
 
-*   Optimizing data storage and organization (e.g., using Parquet, organizing by `square_id`).
-*   Advanced feature engineering.
-*   Implementation and benchmarking of anomaly detection algorithms (Isolation Forest, Autoencoders, etc.), with a particular focus on Apple Silicon performance.
-*   Visualization of results.
+*   Advanced feature engineering (temporal patterns, statistical features)
+*   Implementation and benchmarking of anomaly detection algorithms (Isolation Forest, Autoencoders, etc.)
+*   Apple Silicon-optimized ML pipeline (PyTorch with MPS backend)
+*   Visualization of results and anomaly patterns
+*   Energy efficiency analysis for edge computing scenarios
 
 (Refer to the `.context` file for a more detailed project roadmap.)
 

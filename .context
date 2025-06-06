@@ -94,11 +94,15 @@ El script actual (referenciado en el Canvas como telecom_data_loader_py) se enfo
 
     Ambos scripts están parametrizados para facilitar la ejecución y las pruebas.
 
-    El pipeline actual incluye:
+El pipeline actual incluye:
         - Carga paralela de archivos (14 procesos en Apple Silicon)
         - Conversión de timestamps de milisegundos a datetime
         - Eliminación de columna country_code
         - Agregación por cell_id y timestamp
+        - Fusión de columnas direccionales:
+          * sms_total = sms_in + sms_out
+          * calls_total = call_in + call_out
+          * Eliminación de columnas direccionales individuales
         - Consolidación en un DataFrame único
         - Validación completa (duplicados y valores nulos)
         - Soporte para salida en CSV y Parquet

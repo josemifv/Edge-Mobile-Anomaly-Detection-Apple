@@ -68,6 +68,8 @@ def preprocess_dataframe(df):
     1. Elimina la columna country_code
     2. Convierte timestamp de milisegundos a datetime
     3. Agrupa por cell_id y timestamp y suma las columnas numéricas
+    4. Fusiona columnas de SMS entrantes/salientes en sms_total
+    5. Fusiona columnas de llamadas entrantes/salientes en calls_total
     
     Args:
         df (pandas.DataFrame): DataFrame original.
@@ -96,8 +98,19 @@ def preprocess_dataframe(df):
         'internet_traffic': 'sum'
     }).reset_index()
     
-    print(f"  Filas después de agregación: {len(df_aggregated):,}")
-    return df_aggregated
+    # Paso 4: Fusionar columnas de SMS y llamadas
+    print("  Fusionando columnas de SMS y llamadas...")
+    df_aggregated['sms_total'] = df_aggregated['sms_in'] + df_aggregated['sms_out']
+    df_aggregated['calls_total'] = df_aggregated['call_in'] + df_aggregated['call_out']
+    
+    # Paso 5: Eliminar columnas individuales de SMS y llamadas
+    df_final = df_aggregated.drop(['sms_in', 'sms_out', 'call_in', 'call_out'], axis=1)
+    
+    # Reordenar columnas para que queden en orden lógico
+    df_final = df_final[['cell_id', 'timestamp', 'sms_total', 'calls_total', 'internet_traffic']]
+    
+    print(f"  Filas después de agregación y fusión: {len(df_final):,}")
+    return df_final
 
 # --- 3. Función para Validar el DataFrame Final ---
 def validate_dataframe(df):
