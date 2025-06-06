@@ -86,11 +86,32 @@ El script actual (referenciado en el Canvas como telecom_data_loader_py) se enfo
 
 4. Estado Actual del Código
 
-    El script telecom_data_loader_py está funcional para la carga y el preprocesamiento básico según lo descrito.
+    COMPLETADO: El script 01_data_ingestion.py está funcional para la carga y el preprocesamiento básico según lo descrito.
+
+    COMPLETADO: El script 02_data_preprocessing.py implementa la consolidación, agregación y validación de datos.
 
     Se ha eliminado el código de simulación de datos.
 
-    El script está parametrizado para facilitar la ejecución y las pruebas.
+    Ambos scripts están parametrizados para facilitar la ejecución y las pruebas.
+
+    El pipeline actual incluye:
+        - Carga paralela de archivos (14 procesos en Apple Silicon)
+        - Conversión de timestamps de milisegundos a datetime
+        - Eliminación de columna country_code
+        - Agregación por cell_id y timestamp
+        - Consolidación en un DataFrame único
+        - Validación completa (duplicados y valores nulos)
+        - Soporte para salida en CSV y Parquet
+        - Reportes de rendimiento detallados
+
+    Rendimiento Conseguido (Apple Silicon):
+        - 319,896,289 filas procesadas en ingesta inicial (48.67s)
+        - 89,245,318 filas finales después de preprocesamiento (82.56s)
+        - Velocidad: 1,080,928 filas/segundo en preprocesamiento
+        - Compresión: 72% reducción de filas por agregación
+        - Archivo final: 2.9GB en formato Parquet
+        - Rango temporal: Nov 2013 - Ene 2014 (62 días)
+        - 10,000 celdas únicas en el grid de Milán
 
 5. Próximos Pasos de Codificación Potenciales (para el Agente CLI)
 

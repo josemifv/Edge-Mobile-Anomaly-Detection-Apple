@@ -6,11 +6,13 @@ This project aims to develop a Python pipeline for detecting anomalies in teleco
 
 This repository contains the scripts and resources for this endeavor.
 
-## Current Status: Data Ingestion
+## Current Status: Data Ingestion and Preprocessing
 
-The primary component developed so far is the data ingestion script, located at `scripts/01_data_ingestion.py`.
+The project now includes two main components:
+1. **Data Ingestion**: `scripts/01_data_ingestion.py`
+2. **Data Preprocessing**: `scripts/02_data_preprocessing.py`
 
-### `01_data_ingestion.py` - Functionality
+### `01_data_ingestion.py` - Data Loading
 
 This script is responsible for loading and performing initial preprocessing on the raw telecom data, which is expected in text files (`.txt`) with space-separated values.
 
@@ -27,9 +29,7 @@ Key features include:
 *   **Performance Reporting**: Generates a timestamped performance report in the `outputs/` directory, detailing execution time, files processed, rows processed, and the number of parallel processes used.
 *   **Output Summary**: Can display a summary of the combined DataFrame (if processing a directory) or a single DataFrame using the `--output_summary` flag.
 
-### Usage
-
-To run the script:
+**Usage:**
 
 ```bash
 uv run python scripts/01_data_ingestion.py <input_path> [options]
@@ -47,6 +47,63 @@ uv run python scripts/01_data_ingestion.py <input_path> [options]
 
 ```bash
 uv run python scripts/01_data_ingestion.py data/milan_telecom_dataset/ --output_summary
+```
+
+### `02_data_preprocessing.py` - Data Consolidation and Aggregation
+
+This script performs advanced preprocessing steps on the raw telecom data, including data aggregation, consolidation, and comprehensive validation.
+
+**Preprocessing Steps:**
+
+1. **Column Assignment**: Loads data with specific column names: `cell_id`, `timestamp`, `country_code`, `sms_in`, `sms_out`, `call_in`, `call_out`, `internet_traffic`
+2. **Column Removal**: Drops the `country_code` column from each file after loading
+3. **Data Aggregation**: Groups data by `cell_id` and `timestamp` and aggregates using sum operations for all numeric columns:
+   - `sms_in`: sum
+   - `sms_out`: sum  
+   - `call_in`: sum
+   - `call_out`: sum
+   - `internet_traffic`: sum
+4. **Data Consolidation**: Concatenates all individual text files into a single DataFrame
+
+**Validation Steps:**
+
+1. **Duplicate Check**: Verifies that there are no duplicate rows based on the combination of `cell_id` and `timestamp`
+2. **Null Value Check**: Ensures that there are no missing/null values anywhere in the dataset
+3. **Error Handling**: The validation raises `ValueError` exceptions if any issues are found, stopping the process
+
+**Key Features:**
+
+*   **Parallel Processing**: Uses multiprocessing for efficient file loading
+*   **Memory Efficient**: Processes files individually before consolidation
+*   **Flexible Output**: Supports both CSV and Parquet output formats
+*   **Comprehensive Validation**: Ensures data quality and integrity
+*   **Performance Monitoring**: Generates detailed performance reports
+*   **Preview Option**: Optional data preview with statistics
+
+**Usage:**
+
+```bash
+uv run python scripts/02_data_preprocessing.py <input_path> [options]
+```
+
+**Arguments:**
+
+*   `input_path`: (Required) Directory containing the `.txt` data files
+*   `--output_path PATH`: (Optional) Output file path (.csv or .parquet)
+*   `--max_workers INT`: (Optional) Maximum number of parallel processes (default: number of CPUs)
+*   `--preview`: (Optional) Show preview of the final DataFrame
+
+**Examples:**
+
+```bash
+# Basic preprocessing
+uv run python scripts/02_data_preprocessing.py data/milan_telecom_dataset/
+
+# Save to Parquet format with preview
+uv run python scripts/02_data_preprocessing.py data/milan_telecom_dataset/ --output_path data/processed/consolidated_data.parquet --preview
+
+# Use specific number of workers
+uv run python scripts/02_data_preprocessing.py data/milan_telecom_dataset/ --max_workers 8
 ```
 
 ## Next Steps

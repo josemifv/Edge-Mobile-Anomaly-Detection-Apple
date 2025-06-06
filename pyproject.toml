@@ -1,0 +1,9 @@
+[project]
+name = "edge-mobile-anomaly-detection-apple"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13"
+dependencies = [
+    "pandas>=2.3.0",
+    "pyarrow>=20.0.0",
+]
