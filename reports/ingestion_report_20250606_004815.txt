@@ -1,0 +1,10 @@
+--- Reporte de Rendimiento de Ingesta de Datos ---
+Fecha y Hora: 2025-06-06 00:48:15
+Directorio de Entrada: data/milan_telecom_dataset/
+Chunk Size: Completo
+Conversión de Timestamp: True
+Reordenamiento de Columnas: True
+Número de Procesos Utilizados: 14
+Número de Archivos Procesados: 62
+Número Total de Filas Procesadas: 319896289
+Tiempo Total de Ejecución: 48.6647 segundos

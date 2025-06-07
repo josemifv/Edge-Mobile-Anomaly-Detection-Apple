@@ -1,0 +1,9 @@
+--- Reporte de Rendimiento de Preprocesamiento de Datos ---
+Fecha y Hora: 2025-06-06 21:13:52
+Directorio de Entrada: data/milan_telecom_dataset/
+Archivo de Salida: data/processed/consolidated_milan_telecom_merged.parquet
+Número de Procesos Utilizados: 14
+Número de Archivos Procesados: 62
+Número Total de Filas Finales: 89245318
+Tiempo Total de Ejecución: 82.1891 segundos
+Velocidad de Procesamiento: 1085853 filas/segundo
