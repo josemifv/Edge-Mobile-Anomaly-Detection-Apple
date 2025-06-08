@@ -90,9 +90,11 @@ El script actual (referenciado en el Canvas como telecom_data_loader_py) se enfo
 
     COMPLETADO: El script 02_data_preprocessing.py implementa la consolidación, agregación y validación de datos.
 
+    COMPLETADO: El script 03_week_selection.py implementa la selección de semanas de referencia usando análisis MAD.
+
     Se ha eliminado el código de simulación de datos.
 
-    Ambos scripts están parametrizados para facilitar la ejecución y las pruebas.
+    Todos los scripts están parametrizados para facilitar la ejecución y las pruebas.
 
 El pipeline actual incluye:
         - Carga paralela de archivos (14 procesos en Apple Silicon)
@@ -117,7 +119,26 @@ El pipeline actual incluye:
         - Rango temporal: Nov 2013 - Ene 2014 (62 días)
         - 10,000 celdas únicas en el grid de Milán
 
-5. Próximos Pasos de Codificación Potenciales (para el Agente CLI)
+    Rendimiento Etapa 03 (Selección de Semanas):
+        - 40,000 semanas de referencia seleccionadas (4 por celda)
+        - Tiempo de procesamiento: 72.47s
+        - Throughput: 137 celdas/segundo
+        - Uso de memoria: 3.5GB pico
+        - Análisis MAD: 599,940 mediciones computadas
+        - Cobertura semanas normales: 67.5% promedio
+        - Configuración óptima: 3 semanas, umbral MAD 1.5
+
+5. Estado Actual del Pipeline
+
+    Pipeline Completo Hasta Etapa 03:
+        - Etapa 01: Ingesta de datos (48.67s)
+        - Etapa 02: Preprocesamiento (82.56s) 
+        - Etapa 03: Selección de semanas (72.47s)
+        - Tiempo total pipeline: 203.70s (3.4 min)
+        - Benchmarking automatizado implementado
+        - Reportes de rendimiento completos
+
+6. Próximos Pasos de Codificación Potenciales (para el Agente CLI)
 
     Optimización del Almacenamiento/Organización de Datos:
 
@@ -153,23 +174,25 @@ El pipeline actual incluye:
 
         Parametrización: Permitir seleccionar qué características generar.
 
-    Implementación de Algoritmos de Detección de Anomalías:
+    Implementación de Algoritmos de Detección de Anomalías (PRÓXIMO):
 
         Tarea: Desarrollar la lógica para aplicar modelos de detección de anomalías a los datos de cada celda.
 
-        Modelos a Considerar:
+        Modelos a Considerar (por orden de prioridad):
 
-            Isolation Forest (ya esbozado en una versión anterior del pipeline).
+            1. Algoritmos basados en Proyecciones Ortogonales (OSP) - PRIORIDAD ALTA
+               - Implementar usando las semanas de referencia seleccionadas
+               - Optimización para Apple Silicon MPS
 
-            One-Class SVM.
+            2. Isolation Forest (implementación de referencia)
 
-            Autoencoders (especialmente para pruebas en Apple SoC con PyTorch/MPS o TensorFlow/Metal).
+            3. Autoencoders (especialmente para pruebas en Apple SoC con PyTorch/MPS)
 
-            Algoritmos basados en Proyecciones Ortogonales (requeriría una investigación e implementación más profunda basada en los papers de referencia).
+            4. One-Class SVM.
 
-        Entrada: Datos por celda (idealmente desde el almacenamiento optimizado).
+        Entrada: Semanas de referencia por celda (40,000 selecciones) + datos temporales
 
-        Salida: Identificación de puntos anómalos, scores de anomalía.
+        Salida: Identificación de puntos anómalos, scores de anomalía por celda/tiempo
 
     Evaluación y Visualización de Anomalías:
 
@@ -198,6 +221,23 @@ El pipeline actual incluye:
     Documentación: Comentar adecuadamente el código y las decisiones de diseño.
 
 Este contexto debería ayudar a un agente CLI a entender el estado actual y las direcciones futuras del proyecto.
+
+8. Archivos de Documentación Generados
+
+    Reportes de Rendimiento:
+        - reports/documentation/WEEK_SELECTION_PERFORMANCE.md: Análisis completo de rendimiento Etapa 03
+        - reports/documentation/PERFORMANCE_LEVELS.md: Jerarquía de niveles de optimización
+        - reports/documentation/PERFORMANCE_MEASUREMENTS.md: Mediciones detalladas
+        - reports/documentation/INGESTION_PERFORMANCE_TUNING.md: Optimización de ingesta
+
+    Scripts de Benchmarking:
+        - scripts/benchmark_week_selection.py: Framework de pruebas paramétricas para Etapa 03
+        - scripts/benchmark_all_levels.py: Benchmarking de niveles de optimización
+
+    Estado del Repositorio:
+        - Estructura organizada con reports/ y documentation/
+        - Control de versiones actualizado
+        - Configuración Apple Silicon optimizada
 
 7. Configuración de Git
 

@@ -1,0 +1,66 @@
+WEEK SELECTION PARAMETER SWEEP ANALYSIS
+======================================================================
+
+Generated: 2025-06-07 14:05:17
+
+BENCHMARK SUMMARY:
+  Total configurations tested: 4
+  Successful configurations: 4
+  Failed configurations: 0
+
+PERFORMANCE ANALYSIS:
+  Average processing time: 84.34s
+  Min processing time: 69.27s
+  Max processing time: 91.12s
+
+TOP 5 CONFIGURATIONS BY STABILITY SCORE:
+  1. {'num_reference_weeks': 3, 'mad_threshold': 1.5}
+     Stability Score: 1.8562
+     Processing Time: 69.27s
+     Normal Week Coverage: 0.679
+
+  2. {'num_reference_weeks': 3, 'mad_threshold': 2.0}
+     Stability Score: 1.7142
+     Processing Time: 87.13s
+     Normal Week Coverage: 0.718
+
+  3. {'num_reference_weeks': 4, 'mad_threshold': 2.0}
+     Stability Score: 1.5963
+     Processing Time: 89.85s
+     Normal Week Coverage: 0.723
+
+  4. {'num_reference_weeks': 4, 'mad_threshold': 1.5}
+     Stability Score: 1.5519
+     Processing Time: 91.12s
+     Normal Week Coverage: 0.661
+
+TOP 5 CONFIGURATIONS BY PROCESSING TIME:
+  1. {'num_reference_weeks': 3, 'mad_threshold': 1.5}
+     Processing Time: 69.27s
+     Stability Score: 1.8562
+     Normal Week Coverage: 0.679
+
+  2. {'num_reference_weeks': 3, 'mad_threshold': 2.0}
+     Processing Time: 87.13s
+     Stability Score: 1.7142
+     Normal Week Coverage: 0.718
+
+  3. {'num_reference_weeks': 4, 'mad_threshold': 2.0}
+     Processing Time: 89.85s
+     Stability Score: 1.5963
+     Normal Week Coverage: 0.723
+
+  4. {'num_reference_weeks': 4, 'mad_threshold': 1.5}
+     Processing Time: 91.12s
+     Stability Score: 1.5519
+     Normal Week Coverage: 0.661
+
+PARAMETER IMPACT ANALYSIS:
+
+  NUM_REFERENCE_WEEKS IMPACT:
+    3: Avg Stability=1.7852, Avg Time=78.20s
+    4: Avg Stability=1.5741, Avg Time=90.49s
+
+  MAD_THRESHOLD IMPACT:
+    1.5: Avg Stability=1.7041, Avg Time=80.20s
+    2.0: Avg Stability=1.6552, Avg Time=88.49s

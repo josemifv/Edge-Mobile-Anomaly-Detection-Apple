@@ -1,0 +1,40 @@
+WEEK SELECTION ANALYSIS REPORT (PER CELL)
+============================================================
+
+Generated: 2025-06-07 13:46:24
+
+DATASET OVERVIEW:
+  Total cells: 10000
+  Total weeks: 11
+  Week range: 2013_W01 to 2014_W01
+  Total weekly observations: 109988
+
+MAD ANALYSIS RESULTS:
+  Total MAD measurements: 659928
+  Average MAD value: 1510.5186
+  Average normalized deviation: 747869047.5519
+
+REFERENCE WEEK SELECTION SUMMARY:
+  Total reference weeks selected: 40000
+  Average reference weeks per cell: 4.00
+  Cells processed: 10000
+  Cells with 4 reference weeks: 10000
+  Average stability score: 430002.4738
+
+WEEK DISTRIBUTION:
+  2013_W01: 6 cells (0.1%)
+  2013_W44: 40 cells (0.4%)
+  2013_W45: 3784 cells (37.8%)
+  2013_W46: 5394 cells (53.9%)
+  2013_W47: 4676 cells (46.8%)
+  2013_W48: 7064 cells (70.6%)
+  2013_W49: 6780 cells (67.8%)
+  2013_W50: 5068 cells (50.7%)
+  2013_W51: 5677 cells (56.8%)
+  2013_W52: 1511 cells (15.1%)
+
+CELL STATISTICS SUMMARY:
+  Min weeks available per cell: 5
+  Max weeks available per cell: 11
+  Average weeks available per cell: 11.00
+  Average normal weeks found per cell: 7.03
