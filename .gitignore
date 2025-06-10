@@ -326,6 +326,13 @@ secrets.yaml
 *.fdb_latexmk
 *.synctex.gz
 
+# Test and benchmark outputs
+test_*/
+benchmark_*/
+level_benchmarks/
+reports/benchmarks/
+reports/level_benchmarks/
+
 # Temporary files
 *.tmp
 *.temp

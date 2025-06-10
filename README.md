@@ -203,15 +203,72 @@ This multi-level approach enables:
 - **Hardware evaluation**: Apple Silicon vs traditional architectures
 - **Scalability research**: Performance characteristics across dataset sizes
 
+## Stage 04: OSP Anomaly Detection ✅ IMPLEMENTED
+
+The fourth stage implements Orthogonal Subspace Projection (OSP) based anomaly detection:
+
+### Key Features
+- **Per-cell SVD modeling**: Individual anomaly detection models for each cell
+- **Reference week training**: Uses weeks selected in Stage 03 for normal behavior modeling
+- **Configurable parameters**: SVD components, anomaly thresholds, standardization
+- **Apple Silicon optimization**: Leverages optimized NumPy/SciPy libraries
+- **Parallel processing**: Multi-core execution for large-scale analysis
+- **Comprehensive benchmarking**: Automated performance evaluation framework
+
+### Performance Characteristics
+- **Throughput**: 2,205,410 samples/sec on Apple Silicon (full dataset)
+- **Scalability**: Successfully processed all 89,245,318 samples across 10,000 cells
+- **Processing Time**: 40.47 seconds for complete dataset
+- **Memory efficiency**: 5.6GB for full dataset processing
+- **Success Rate**: 100% (10,000/10,000 cells processed successfully)
+- **Anomaly detection**: 6.23% overall rate, configurable sensitivity (1.5-3.0 std thresholds)
+
+### Usage Examples
+```bash
+# Basic OSP anomaly detection
+uv run python scripts/04_anomaly_detection_osp.py \
+    data/processed/consolidated_milan_telecom_merged.parquet \
+    reports/reference_weeks_20250607_135521.parquet
+
+# Optimal configuration (full dataset)
+uv run python scripts/04_anomaly_detection_osp.py \
+    data/processed/consolidated_milan_telecom_merged.parquet \
+    reports/reference_weeks_20250607_135521.parquet \
+    --n_components 3 --anomaly_threshold 2.0 --max_workers 8
+
+# Comprehensive benchmarking
+uv run python scripts/benchmark_osp_anomaly_detection.py \
+    data/processed/consolidated_milan_telecom_merged.parquet \
+    reports/reference_weeks_20250607_135521.parquet \
+    --config_type standard
+```
+
+## Current Pipeline Status
+
+✅ **Stage 01**: Data Ingestion (319M rows → 89M rows, 48.67s)  
+✅ **Stage 02**: Data Preprocessing (Aggregation & validation, 82.56s)  
+✅ **Stage 03**: Reference Week Selection (40k weeks selected, 72.47s)  
+✅ **Stage 04**: OSP Anomaly Detection (5.56M anomalies detected, 40.47s)  
+
+**Complete Pipeline Performance**: 244.17s (4.07 minutes) for end-to-end processing
+
+### Stage 04 Full Dataset Results
+- **100% Success Rate**: All 10,000 cells processed successfully
+- **Outstanding Performance**: 15x faster than projected (40.47s vs 598s estimated)
+- **Anomaly Detection**: 5,561,393 anomalies detected (6.23% overall rate)
+- **Range**: 0.00% - 49.08% anomaly rate across cells
+- **Geographic Patterns**: Higher anomaly rates in cells 5000s and 7000s ranges
+- **Output Files**: 309MB detailed results, 243KB summary data
+
 ## Next Steps
 
-Future development will focus on:
+Upcoming development priorities:
 
-*   Advanced feature engineering (temporal patterns, statistical features)
-*   Implementation and benchmarking of anomaly detection algorithms (Isolation Forest, Autoencoders, etc.)
-*   Apple Silicon-optimized ML pipeline (PyTorch with MPS backend)
-*   Visualization of results and anomaly patterns
-*   Energy efficiency analysis for edge computing scenarios
+*   **Stage 05**: Alternative anomaly detection algorithms (Isolation Forest, One-Class SVM)
+*   **Stage 06**: Deep learning approaches (Autoencoders with PyTorch MPS)
+*   **Stage 07**: Anomaly visualization and interpretation tools
+*   **Stage 08**: Energy efficiency analysis for edge deployment
+*   **Stage 09**: Real-time anomaly detection pipeline
 
 (Refer to the `.context` file for a more detailed project roadmap.)
 
