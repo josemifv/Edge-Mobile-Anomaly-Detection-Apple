@@ -12,9 +12,7 @@ matplotlib>=3.10.3
 seaborn>=0.13.2
 
 # Utility dependencies
-python-dotenv>=1.0.0
 psutil>=7.0.0
-aiofiles>=24.1.0
 
 # Development dependencies (optional)
 pytest>=8.0.0

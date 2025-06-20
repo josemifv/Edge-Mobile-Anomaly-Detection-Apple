@@ -20,12 +20,6 @@ uv venv
 uv pip install -r requirements.txt
 ```
 
-## Configuration
-Copy `.env.example` to `.env` and adjust settings:
-```bash
-cp .env.example .env
-```
-
 ## Pipeline Stages
 
 The pipeline consists of 4 sequential stages:
