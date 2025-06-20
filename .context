@@ -409,3 +409,64 @@ git_remote_origin=git@github.com:josemifv/Edge-Mobile-Anomaly-Detection-Apple.gi
     - 2 archivos modificados
     - 60 inserciones, 264 eliminaciones
     - Estructura lista para publicación académica
+
+10. Step 4 Completed: Core Pipeline Implementation
+
+    Commit: 8daabb0 - "feat: implement core 4-stage pipeline for CMMSE 2025"
+    
+    Scripts Implementados (Enfoque Académico Simplificado):
+    
+        scripts/01_data_ingestion.py:
+        - Ingesta de datos con optimización Apple Silicon
+        - Procesamiento paralelo de archivos .txt
+        - Conversión de timestamps y limpieza inicial
+        - Estructura clara y documentada para investigación
+        
+        scripts/02_data_preprocessing.py:
+        - Agregación por cell_id y timestamp
+        - Fusión de columnas direccionales (SMS/llamadas)
+        - Validación completa de calidad de datos
+        - Salida en formato Parquet optimizado
+        
+        scripts/03_week_selection.py:
+        - Análisis MAD (Median Absolute Deviation)
+        - Selección de semanas de referencia "normales"
+        - Configuración parametrizable
+        - Datos de entrenamiento para detección de anomalías
+        
+        scripts/04_anomaly_detection_osp.py:
+        - Implementación OSP con descomposición SVD
+        - Modelos per-celda de detección de anomalías
+        - Procesamiento paralelo escalable
+        - Configuración flexible de parámetros
+        
+        scripts/run_pipeline.py:
+        - Ejecutor completo del pipeline 4-etapas
+        - Gestión automática de archivos intermedios
+        - Resumen de rendimiento y tiempos
+        - Configuración centralizada de parámetros
+    
+    README.md Actualizado:
+    
+        - Documentación completa del pipeline 4-etapas
+        - Instrucciones de uso individual y completo
+        - Ejemplos de ejecución con parámetros
+        - Enfoque en facilidad de uso para investigación
+    
+    Características del Enfoque Académico:
+    
+        - Código limpio y bien documentado
+        - Eliminación de complejidad innecesaria
+        - Enfoque en reproducibilidad
+        - Optimización Apple Silicon mantenida
+        - Scripts numerados para claridad de flujo
+        - Documentación inline extensa
+        - Configuración via argumentos de línea de comandos
+    
+    Cambios del Commit:
+    - 6 archivos modificados
+    - 1,187 inserciones, 5 eliminaciones
+    - 5 scripts nuevos creados
+    - README actualizado con documentación completa
+    
+    Estado: Pipeline core completado y listo para CMMSE 2025
