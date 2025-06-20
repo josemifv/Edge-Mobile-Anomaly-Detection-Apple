@@ -341,3 +341,8 @@ reports/level_benchmarks/
 *~
 
 backup/
+
+# Data directories
+data/raw/
+data/processed/
+results/
