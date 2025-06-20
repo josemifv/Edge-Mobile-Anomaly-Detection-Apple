@@ -1,9 +1,0 @@
---- Reporte de Rendimiento de Preprocesamiento de Datos ---
-Fecha y Hora: 2025-06-06 21:12:22
-Directorio de Entrada: data/test_subset/
-Archivo de Salida: No especificado
-Número de Procesos Utilizados: 2
-Número de Archivos Procesados: 2
-Número Total de Filas Finales: 2879968
-Tiempo Total de Ejecución: 5.1848 segundos
-Velocidad de Procesamiento: 555465 filas/segundo

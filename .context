@@ -322,6 +322,8 @@ Este contexto debería ayudar a un agente CLI a entender el estado actual y las 
         - Configuración Apple Silicon optimizada
         - Pipeline completo de extremo a extremo funcional
         - Frameworks de benchmarking para todas las etapas
+        - ✅ BACKUP CREADO: edge_mobile_v1_20250620 (scripts/, reports/ respaldados)
+        - backup/ directory agregado a .gitignore
 
 7. Configuración de Git
 
