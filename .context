@@ -328,3 +328,84 @@ Este contexto debería ayudar a un agente CLI a entender el estado actual y las 
 7. Configuración de Git
 
 git_remote_origin=git@github.com:josemifv/Edge-Mobile-Anomaly-Detection-Apple.git
+
+8. Configuración CMMSE 2025
+
+    Rama de Desarrollo: cmmse2025 (creada para publicación académica)
+    
+    Nueva Estructura del Proyecto:
+    
+        src/edge_mobile_anomaly/: Paquete principal restructurado
+        ├── core/: Funcionalidades centrales del framework
+        ├── data/: Módulos de gestión de datos
+        ├── models/: Implementaciones de algoritmos de ML
+        ├── utils/: Utilidades y helpers
+        └── visualization/: Herramientas de visualización
+        
+        tests/: Framework de pruebas
+        ├── unit/: Pruebas unitarias
+        └── integration/: Pruebas de integración
+        
+        config/: Configuraciones por entorno
+        ├── development/: Configuración de desarrollo
+        └── production/: Configuración de producción
+        
+        docs/: Documentación técnica
+        ├── api/: Documentación de API
+        └── benchmarks/: Documentación de benchmarks
+        
+        results/: Salidas del sistema
+        ├── figures/: Gráficos y visualizaciones
+        └── data/: Datos de resultados
+    
+    Archivos de Configuración:
+    
+        .env.example: Plantilla de configuración con valores por defecto
+        - Configuración de desarrollo (DEBUG=True)
+        - Parámetros de procesamiento (CHUNK_SIZE=100000, MAX_WORKERS=14)
+        - Modo de rendimiento (PERFORMANCE_MODE=1)
+        - Aceleración de hardware (USE_MPS=True, MPS_FALLBACK=True)
+        
+        .env: Archivo de configuración local (vacío por defecto)
+        
+        .dockerignore: Exclusiones para contenedores Docker
+        - backup/, .env, archivos cache, logs
+    
+    Estado del Commit:
+    
+        Commit: 5a54f0e - "feat: initialize new project structure for CMMSE 2025"
+        - 41 archivos modificados
+        - Nueva estructura de paquetes creada
+        - Archivos de configuración inicializados
+        - Limpieza de archivos legacy de reportes
+        
+    Propósito: Preparación para publicación académica en CMMSE 2025 con estructura modular y configuración optimizada para Apple Silicon.
+
+9. Step 3 Completed: Project Metadata Updates
+
+    Commit: bc48b70 - "chore: update project metadata for CMMSE 2025"
+    
+    Actualizaciones Realizadas:
+    
+        pyproject.toml:
+        - Version actualizada a 0.2.0
+        - Descripción específica: "Mobile Network Anomaly Detection Pipeline Optimized for Apple Silicon"
+        - Metadata completa: autor, licencia, readme, keywords
+        - Keywords académicas: anomaly-detection, mobile-networks, apple-silicon, machine-learning
+        - Dependencia torch>=2.2.0 añadida (soporte MPS)
+        - Dependencia python-dotenv>=1.0.0 añadida
+        - Configuración completa dev dependencies (pytest, black, isort, mypy)
+        - Build system con hatchling
+        - Configuración de herramientas (pytest, black, isort)
+        
+        README.md:
+        - Enfoque CMMSE 2025 conference
+        - Instalación con uv tool
+        - Configuración .env
+        - Estado de desarrollo académico
+        - Eliminación del contenido legacy técnico
+        
+    Cambios:
+    - 2 archivos modificados
+    - 60 inserciones, 264 eliminaciones
+    - Estructura lista para publicación académica
