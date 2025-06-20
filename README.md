@@ -20,6 +20,33 @@ uv venv
 uv pip install -r requirements.txt
 ```
 
+## Configuration
+
+All scripts use command-line arguments for configuration. No environment files needed.
+
+### Common Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--max_workers` | auto | Maximum parallel processes (optimized for Apple Silicon) |
+| `--output_path` | varies | Output file path (supports .csv and .parquet) |
+| `--preview` | False | Show data preview and statistics |
+
+### Stage-Specific Parameters
+
+**Stage 3: Reference Week Selection**
+- `--num_weeks` (default: 4) - Number of reference weeks per cell
+- `--mad_threshold` (default: 1.5) - MAD threshold for normal weeks
+
+**Stage 4: OSP Anomaly Detection**
+- `--n_components` (default: 3) - SVD components for subspace projection
+- `--anomaly_threshold` (default: 2.0) - Anomaly detection threshold (std deviations)
+
+**Complete Pipeline Runner**
+- `--n_components` (default: 3) - OSP SVD components
+- `--anomaly_threshold` (default: 2.0) - OSP anomaly threshold
+- `--preview` - Show data previews for all stages
+
 ## Pipeline Stages
 
 The pipeline consists of 4 sequential stages:
