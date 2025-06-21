@@ -41,16 +41,21 @@ Edge-Mobile-Anomaly-Detection-Apple/
 │   ├── figures/                      # Visualization outputs
 │   ├── benchmarks/                   # Performance benchmark results
 │   └── data/                         # Micro test results by configuration
-└── scripts/                       # Core pipeline implementation (9 scripts)
+└── scripts/                       # Core pipeline implementation (12 scripts)
     ├── 01_data_ingestion.py             # Stage 1: Data loading & preprocessing
     ├── 02_data_preprocessing.py         # Stage 2: Aggregation & validation
     ├── 03_week_selection.py             # Stage 3: Reference week selection
     ├── 04_anomaly_detection_osp.py      # Stage 4: OSP anomaly detection
     ├── 04_anomaly_detection_osp_detailed.py  # Enhanced individual tracking
+    ├── 04_anomaly_detection_individual.py   # Individual anomaly detection (Stage 4)
+    ├── 05_analyze_anomalies.py          # Comprehensive anomaly analysis (Stage 5)
+    ├── 06_generate_anomaly_map.py       # Geographic anomaly visualization
+    ├── 07_plot_extreme_cell_timeline.py # Extreme cell timeline analysis
     ├── analyze_severe_anomalies.py      # Severity analysis tools
     ├── benchmark_parameter_sweep.py     # Comprehensive parameter optimization
     ├── benchmark_micro_test.py          # Quick system validation
-    └── run_pipeline.py                  # Complete pipeline orchestrator
+    ├── run_pipeline.py                  # Complete 4-stage pipeline orchestrator
+    └── run_pipeline_5stages.py          # Complete 5-stage pipeline orchestrator
 
 3. CORE PIPELINE ARCHITECTURE (5 STAGES - REFACTORED)
 ====================================================
@@ -208,10 +213,14 @@ Refactored Components:
 ✅ REFACTORED: 5-stage pipeline architecture (Stage 4 + new Stage 5)
 ✅ NEW: Individual anomaly detection without aggregation (Stage 4)
 ✅ NEW: Comprehensive anomaly analysis framework (Stage 5)
+✅ NEW: Geographic anomaly visualization with Milano grid (Stage 6)
+✅ NEW: Extreme cell timeline analysis (Stage 7)
 ✅ NEW: 5-stage pipeline runner (run_pipeline_5stages.py)
 ✅ Apple Silicon optimization verified and documented
 ✅ Complete dataset processing (100% success rate)
 ✅ Enhanced individual anomaly analysis capabilities
+✅ Interactive maps with percentile-based classification
+✅ Comprehensive timeline visualizations for extreme cells
 ✅ Comprehensive benchmarking tools
 ✅ Academic documentation for CMMSE 2025
 ✅ Clean repository structure with minimal dependencies
