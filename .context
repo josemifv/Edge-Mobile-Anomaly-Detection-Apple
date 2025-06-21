@@ -52,8 +52,8 @@ Edge-Mobile-Anomaly-Detection-Apple/
     ├── benchmark_micro_test.py          # Quick system validation
     └── run_pipeline.py                  # Complete pipeline orchestrator
 
-3. CORE PIPELINE ARCHITECTURE (4 STAGES)
-========================================
+3. CORE PIPELINE ARCHITECTURE (5 STAGES - REFACTORED)
+====================================================
 
 Stage 1: Data Ingestion (01_data_ingestion.py)
 - Input: Raw .txt files from Milano Telecom dataset
@@ -76,12 +76,19 @@ Stage 3: Reference Week Selection (03_week_selection.py)
 - Output: reference_weeks.parquet (39.4K reference weeks)
 - Performance: 795K rows/second (112.27s execution)
 
-Stage 4: OSP Anomaly Detection (04_anomaly_detection_osp.py)
+Stage 4: Individual Anomaly Detection (04_anomaly_detection_individual.py) [REFACTORED]
 - Input: Preprocessed data + reference weeks from Stages 2 & 3
-- Processing: Orthogonal Subspace Projection with SVD decomposition
-- Features: Per-cell modeling, parallel processing, configurable parameters
-- Output: anomalies.parquet (5.65M anomalies detected, 6.33% rate)
-- Performance: 190K samples/second (469.97s execution)
+- Processing: OSP with individual anomaly record capture (no aggregation)
+- Features: Per-cell OSP modeling, severity scoring, individual record tracking
+- Output: individual_anomalies.parquet (individual anomaly records with full details)
+- Performance: 190K samples/second (estimated, similar to original)
+
+Stage 5: Comprehensive Anomaly Analysis (05_analyze_anomalies.py) [NEW]
+- Input: Individual anomaly records from Stage 4
+- Processing: Statistical analysis, pattern identification, visualization generation
+- Features: Temporal analysis, severity ranking, cell-level patterns, report generation
+- Output: Analysis reports, visualizations, and research-grade insights
+- Performance: Fast analysis of detected anomalies
 
 4. ALGORITHM IMPLEMENTATION
 ==========================
@@ -195,22 +202,41 @@ Documentation:
 =========================
 
 Development Branch: cmmse2025
-Last Commit: eee6bcb - "docs: finalize CMMSE 2025 refactor documentation"
+Last Commit: 5d4a0dc - "feat: add enhanced analysis and benchmarking tools"
 
-Completed Components:
-✅ Core 4-stage pipeline fully implemented and tested
+Refactored Components:
+✅ REFACTORED: 5-stage pipeline architecture (Stage 4 + new Stage 5)
+✅ NEW: Individual anomaly detection without aggregation (Stage 4)
+✅ NEW: Comprehensive anomaly analysis framework (Stage 5)
+✅ NEW: 5-stage pipeline runner (run_pipeline_5stages.py)
 ✅ Apple Silicon optimization verified and documented
 ✅ Complete dataset processing (100% success rate)
-✅ Individual anomaly analysis framework
+✅ Enhanced individual anomaly analysis capabilities
 ✅ Comprehensive benchmarking tools
 ✅ Academic documentation for CMMSE 2025
 ✅ Clean repository structure with minimal dependencies
+
+Refactoring Benefits:
+✅ Separation of detection and analysis concerns
+✅ Individual anomaly records for detailed research
+✅ Flexible analysis capabilities for different research questions
+✅ Better suited for academic publication and case studies
 
 Testing Status:
 ✅ End-to-end pipeline verification completed
 ✅ Performance benchmarking on full dataset
 ✅ Individual anomaly analysis validated
 ✅ Micro testing framework operational
+✅ NEW: 5-stage refactored pipeline successfully tested
+
+5-Stage Pipeline Test Results (5 cells sample):
+- Stage 1: 159.20s | 2.06M rows/sec | 319.9M rows processed
+- Stage 2: 144.51s | 72.1% compression | 89.2M rows output
+- Stage 3: 104.71s | 39.4K reference weeks selected
+- Stage 4: 4.79s | 17K samples/sec | 2,672 individual anomalies detected
+- Stage 5: 2.20s | Complete analysis with 6 reports + 2 visualizations
+- Total: 415.42s (6.92 minutes) for 5-cell test
+- Anomaly rate: 5.99% | Most severe: 8.53σ | Peak time: 01:00
 
 Repository Health:
 ✅ Clean commit history with academic focus
