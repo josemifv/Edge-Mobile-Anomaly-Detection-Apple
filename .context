@@ -1,543 +1,283 @@
-Contexto del Proyecto: Pipeline de Detección de Anomalías en Datos Telecom
-1. Visión General del Proyecto
-
-El objetivo principal es desarrollar un pipeline en Python para detectar anomalías en el dataset de telecomunicaciones de Milán. Una meta secundaria es evaluar la idoneidad de las máquinas con SoC de Apple para este tipo de tareas de Machine Learning, centrándose en la potencia y el consumo energético.
-2. Resumen del Script Actual: telecom_data_loader_py
-
-El script actual (referenciado en el Canvas como telecom_data_loader_py) se enfoca en la carga y preprocesamiento inicial de los datos de telecomunicaciones desde archivos CSV.
-
-    Propósito Principal: Leer archivos CSV con un formato específico (delimitado por espacios, número variable de columnas de actividad) y convertirlos en DataFrames de Pandas utilizables.
-
-    Funcionalidades Clave:
-
-        Carga de un único archivo CSV.
-
-        Procesamiento de todos los archivos CSV dentro de un directorio especificado.
-
-        Manejo de lectura por trozos (chunk_size) para archivos grandes.
-
-        Conversión de timestamps de milisegundos a objetos datetime de Pandas.
-
-        Manejo básico de errores durante la carga.
-
-        Parametrización mediante argumentos de línea de comandos (argparse) para controlar el comportamiento.
-
-    Formato de Entrada Esperado (CSV):
-
-        Delimitador: Múltiples espacios en blanco (delim_whitespace=True).
-
-        Sin encabezado (header=None).
-
-        Columnas (en orden):
-
-            square_id (entero)
-
-            timestamp_ms (entero, timestamp Unix en milisegundos)
-
-            country_code (entero)
-
-            sms_in (decimal, opcional)
-
-            sms_out (decimal, opcional)
-
-            call_in (decimal, opcional)
-
-            call_out (decimal, opcional)
-
-            internet_activity (decimal, opcional)
-
-        Las columnas de actividad (4-8) pueden no estar presentes en todas las filas; se manejan como NaN.
-
-    Salida del Script:
-
-        Una lista de DataFrames de Pandas (uno por cada archivo CSV procesado exitosamente).
-
-        Mensajes en la consola indicando el progreso, errores y tiempos de ejecución.
-
-        Opcionalmente, un resumen del DataFrame resultante (o combinado) si se usa --output_summary.
-
-    Variables de Interés para Pruebas de Rendimiento (Parametrizadas):
-
-        input_path: Ruta al archivo/directorio de entrada.
-
-        chunk_size: Tamaño de los trozos para la lectura de CSV.
-
-        convert_timestamp: Booleano para activar/desactivar la conversión de timestamp.
-
-        reorder_cols: Booleano para activar/desactivar el reordenamiento de columnas.
-
-    Constantes Clave:
-
-        COLUMN_NAMES: Lista que define los nombres esperados para las columnas del CSV.
-
-3. Estructuras de Datos Clave
-
-    DataFrame de Entrada (crudo, por archivo): Estructura según COLUMN_NAMES.
-
-    DataFrame de Salida (por archivo procesado):
-
-        square_id: Int64
-
-        country_code: Int64
-
-        sms_in, sms_out, call_in, call_out, internet_activity: float64 (con NaNs donde falten datos)
-
-        timestamp: datetime64[ns] (si convert_timestamp está activo)
-
-4. Estado Actual del Código
-
-    COMPLETADO: El script 01_data_ingestion.py está funcional para la carga y el preprocesamiento básico según lo descrito.
-
-    COMPLETADO: El script 02_data_preprocessing.py implementa la consolidación, agregación y validación de datos.
-
-    COMPLETADO: El script 03_week_selection.py implementa la selección de semanas de referencia usando análisis MAD.
-
-    Se ha eliminado el código de simulación de datos.
-
-    Todos los scripts están parametrizados para facilitar la ejecución y las pruebas.
-
-El pipeline actual incluye:
-        - Carga paralela de archivos (14 procesos en Apple Silicon)
-        - Conversión de timestamps de milisegundos a datetime
-        - Eliminación de columna country_code
-        - Agregación por cell_id y timestamp
-        - Fusión de columnas direccionales:
-          * sms_total = sms_in + sms_out
-          * calls_total = call_in + call_out
-          * Eliminación de columnas direccionales individuales
-        - Consolidación en un DataFrame único
-        - Validación completa (duplicados y valores nulos)
-        - Soporte para salida en CSV y Parquet
-        - Reportes de rendimiento detallados
-
-    Rendimiento Conseguido (Apple Silicon):
-        - 319,896,289 filas procesadas en ingesta inicial (48.67s)
-        - 89,245,318 filas finales después de preprocesamiento (82.56s)
-        - Velocidad: 1,080,928 filas/segundo en preprocesamiento
-        - Compresión: 72% reducción de filas por agregación
-        - Archivo final: 2.9GB en formato Parquet
-        - Rango temporal: Nov 2013 - Ene 2014 (62 días)
-        - 10,000 celdas únicas en el grid de Milán
-
-    Rendimiento Etapa 03 (Selección de Semanas):
-        - 40,000 semanas de referencia seleccionadas (4 por celda)
-        - Tiempo de procesamiento: 72.47s
-        - Throughput: 137 celdas/segundo
-        - Uso de memoria: 3.5GB pico
-        - Análisis MAD: 599,940 mediciones computadas
-        - Cobertura semanas normales: 67.5% promedio
-        - Configuración óptima: 3 semanas, umbral MAD 1.5
-
-5. Estado Actual del Pipeline
-
-    Pipeline Completo Hasta Etapa 04:
-        ✅ Etapa 01: Ingesta de datos (48.67s)
-        ✅ Etapa 02: Preprocesamiento (82.56s) 
-        ✅ Etapa 03: Selección de semanas (72.47s)
-        ✅ Etapa 04: Detección de anomalías OSP (40.47s dataset completo)
-        - Tiempo total pipeline: 244.17s (203.70s + 40.47s detección completa)
-        - Benchmarking automatizado implementado para todas las etapas
-        - Reportes de rendimiento completos
-        - Pipeline completo funcional de extremo a extremo
-
-6. Estado de Desarrollo del Pipeline
-
-    COMPLETADO - Pipeline Funcional de Extremo a Extremo:
-    
-        ✅ Etapa 01: Ingesta de Datos
-        - Múltiples niveles de optimización (0-3)
-        - Procesamiento paralelo para Apple Silicon
-        - Benchmarking automatizado
-        
-        ✅ Etapa 02: Preprocesamiento de Datos  
-        - Agregación y consolidación
-        - Validación completa de integridad
-        - Optimización de memoria
-        
-        ✅ Etapa 03: Selección de Semanas de Referencia
-        - Análisis MAD para identificar semanas normales
-        - 40,000 semanas seleccionadas (4 por celda)
-        - Framework de benchmarking paramétrico
-        
-        ✅ Etapa 04: Detección de Anomalías OSP
-        - Algoritmo OSP con modelado SVD per-celda
-        - Configuración óptima determinada mediante benchmarking
-        - Escalabilidad DEMOSTRADA en dataset completo (89M muestras)
-        - Framework de benchmarking completo
-
-7. Próximos Pasos de Desarrollo (Prioridades)
-
-    Optimización del Almacenamiento/Organización de Datos:
-
-        Tarea: Implementar una funcionalidad (posiblemente un nuevo script o una extensión del actual) para reorganizar los datos cargados y almacenarlos por square_id.
-
-        Objetivo: Facilitar el acceso rápido a los datos de una celda específica para la detección de anomalías aislada.
-
-        Consideraciones:
-
-            Formato de salida: Considerar Parquet o Feather en lugar de CSV para eficiencia.
-
-            Estructura de salida: Un archivo por square_id o particionamiento nativo de Parquet.
-
-            Manejo de memoria si el dataset combinado es muy grande antes de la reorganización.
-
-            Añadir argumentos al script para controlar esta nueva funcionalidad (ej. --output_cell_data_path /ruta/, --output_format parquet).
-
-        Métricas de Rendimiento: Medir el tiempo de esta etapa de reorganización y el beneficio en la velocidad de acceso posterior.
-
-    Ingeniería de Características (Feature Engineering):
-
-        Tarea: Añadir una nueva sección/script para crear características relevantes para la detección de anomalías a partir de los datos preprocesados.
-
-        Ejemplos:
-
-            Características temporales más avanzadas (ej. parte del día, si es festivo - requeriría datos externos).
-
-            Características de lag (valores de actividad en t-1, t-2, etc.).
-
-            Estadísticas móviles (media, std dev de actividad en ventanas de tiempo).
-
-            Diferencias respecto a patrones históricos de la misma celda.
-
-        Parametrización: Permitir seleccionar qué características generar.
-
-    Implementación de Algoritmos de Detección de Anomalías (COMPLETADO - ETAPA 04):
-
-        COMPLETADO: El script 04_anomaly_detection_osp.py implementa detección de anomalías OSP.
-
-        Algoritmos Implementados:
-
-            ✅ 1. Algoritmos basados en Proyecciones Ortogonales (OSP) - COMPLETADO
-               - Implementado usando las semanas de referencia seleccionadas
-               - Modelado SVD per-celda con parámetros configurables
-               - Optimización para Apple Silicon (NumPy/SciPy optimizado)
-               - Procesamiento paralelo para escalabilidad
-
-            📋 2. Isolation Forest (implementación de referencia) - SIGUIENTE PRIORIDAD
-
-            📋 3. Autoencoders (PyTorch/MPS para Apple SoC) - PRIORIDAD MEDIA
-
-            📋 4. One-Class SVM - PRIORIDAD BAJA
-
-        Entrada: Semanas de referencia por celda (40,000 selecciones) + datos temporales
-
-        Salida: Identificación de puntos anómalos, scores de anomalía por celda/tiempo
-        
-        Rendimiento Etapa 04 (OSP) - IMPLEMENTACIÓN COMPLETA:
-        
-        Scripts Implementados:
-        - scripts/04_anomaly_detection_osp.py: Detección OSP principal
-        - scripts/benchmark_osp_anomaly_detection.py: Framework de benchmarking
-        
-        Características Técnicas:
-        - Modelado SVD per-celda con parámetros configurables
-        - Entrenamiento basado en semanas de referencia (Etapa 03)
-        - Procesamiento paralelo optimizado para Apple Silicon
-        - Manejo robusto de errores y validación de datos
-        - Soporte para datasets masivos (89M+ muestras)
-        
-        Rendimiento Dataset Completo (10,000 celdas - 100% coverage) - COMPLETADO:
-        - ✅ 100% tasa de éxito (10,000/10,000 celdas procesadas)
-        - ⚡ 2,205,410 muestras/segundo throughput (15x mejor que proyección)
-        - 🔧 247.1 celdas/segundo velocidad de procesamiento
-        - 📊 89,245,318 muestras analizadas en 40.47 segundos
-        - 🎯 5,561,393 anomalías detectadas (6.23% tasa promedio)
-        - 💾 5.6GB uso de memoria (escalabilidad excelente)
-        - 📁 Archivos generados: 309MB detallado, 243KB resumen
-        
-        Hallazgos de Anomalías:
-        - 📈 Rango de anomalías: 0.00% - 49.08% por celda
-        - 🗺️ Patrones geográficos: Celdas 5000s y 7000s muestran más anomalías
-        - 📊 Desviación estándar: ±5.55% entre celdas
-        - 🎯 Celdas más anómalas: 5342 (49.1%), 5241 (49.0%), 5240 (48.4%)
-        - ✨ Celdas normales: Múltiples celdas con 0% anomalías
-        
-        Configuración Óptima Determinada:
-        - SVD Components: 3 (mejor balance throughput/precisión)
-        - Anomaly Threshold: 2.0 desviaciones estándar
-        - Workers: 8 procesos paralelos
-        - Standardization: Habilitada
-        
-        Framework de Benchmarking Automatizado:
-        - Barrido paramétrico completo (quick/standard/extensive)
-        - Monitoreo de recursos (CPU, memoria)
-        - Análisis comparativo automatizado
-        - Generación de reportes markdown y visualizaciones
-        - Exportación de datos en JSON/CSV/Parquet
-        
-        Resultados de Benchmarking (quick mode - 9 configuraciones):
-        - 66.7% tasa de éxito general
-        - Mejor throughput: 15,577 muestras/segundo
-        - Tiempo promedio ejecución: 7.2 segundos
-        - Impacto de parámetros cuantificado
-
-    Evaluación y Visualización de Anomalías:
-
-        Tarea: Implementar la visualización de las series temporales con anomalías marcadas, distribución de scores, etc.
-
-        Métricas: Si se dispone de datos etiquetados (ground truth), calcular precisión, recall, F1-score. Si no, la evaluación será más cualitativa.
-
-    Benchmarking y Pruebas de Rendimiento en Apple SoC:
-
-        Tarea: Diseñar y ejecutar scripts de benchmarking para cada etapa del pipeline (carga, reorganización, ingeniería de características, detección) tanto en SoC de Apple como en otras arquitecturas si es posible.
-
-        Métricas Clave: Tiempo de ejecución, uso de CPU/GPU/ANE, consumo energético (estimado).
-
-        Herramientas: time.perf_counter(), cProfile, htop, asitop, Monitor de Actividad de macOS.
-
-6. Consideraciones para el Agente CLI
-
-    Manejo de Errores: Asegurar un manejo robusto de errores y logging detallado en todas las etapas.
-
-    Modularidad: Mantener el código modular para facilitar las pruebas y la modificación de componentes individuales del pipeline.
-
-    Eficiencia: Prestar atención a la eficiencia en el uso de memoria y CPU, especialmente con Pandas en datasets grandes.
-
-    Reproducibilidad: Usar semillas (random_state) en algoritmos estocásticos.
-
-    Documentación: Comentar adecuadamente el código y las decisiones de diseño.
-
-Este contexto debería ayudar a un agente CLI a entender el estado actual y las direcciones futuras del proyecto.
-
-8. Archivos de Documentación Generados
-
-    Reportes de Rendimiento:
-        - reports/documentation/WEEK_SELECTION_PERFORMANCE.md: Análisis completo de rendimiento Etapa 03
-        - reports/documentation/PERFORMANCE_LEVELS.md: Jerarquía de niveles de optimización
-        - reports/documentation/PERFORMANCE_MEASUREMENTS.md: Mediciones detalladas
-        - reports/documentation/INGESTION_PERFORMANCE_TUNING.md: Optimización de ingesta
-
-    Scripts de Benchmarking:
-        - scripts/benchmark_week_selection.py: Framework de pruebas paramétricas para Etapa 03
-        - scripts/benchmark_all_levels.py: Benchmarking de niveles de optimización
-        - scripts/benchmark_osp_anomaly_detection.py: Benchmarking completo Etapa 04 OSP
-
-    Scripts de Implementación:
-        - scripts/04_anomaly_detection_osp.py: Detección de anomalías OSP principal
-        - scripts/benchmark_osp_anomaly_detection.py: Framework de benchmarking OSP
-        
-    Estado del Repositorio:
-        - Estructura organizada con reports/ y documentation/
-        - Control de versiones actualizado
-        - Configuración Apple Silicon optimizada
-        - Pipeline completo de extremo a extremo funcional
-        - Frameworks de benchmarking para todas las etapas
-        - ✅ BACKUP CREADO: edge_mobile_v1_20250620 (scripts/, reports/ respaldados)
-        - backup/ directory agregado a .gitignore
-
-7. Configuración de Git
-
-git_remote_origin=git@github.com:josemifv/Edge-Mobile-Anomaly-Detection-Apple.git
-
-8. Configuración CMMSE 2025
-
-    Rama de Desarrollo: cmmse2025 (creada para publicación académica)
-    
-    Nueva Estructura del Proyecto:
-    
-        src/edge_mobile_anomaly/: Paquete principal restructurado
-        ├── core/: Funcionalidades centrales del framework
-        ├── data/: Módulos de gestión de datos
-        ├── models/: Implementaciones de algoritmos de ML
-        ├── utils/: Utilidades y helpers
-        └── visualization/: Herramientas de visualización
-        
-        tests/: Framework de pruebas
-        ├── unit/: Pruebas unitarias
-        └── integration/: Pruebas de integración
-        
-        config/: Configuraciones por entorno
-        ├── development/: Configuración de desarrollo
-        └── production/: Configuración de producción
-        
-        docs/: Documentación técnica
-        ├── api/: Documentación de API
-        └── benchmarks/: Documentación de benchmarks
-        
-        results/: Salidas del sistema
-        ├── figures/: Gráficos y visualizaciones
-        └── data/: Datos de resultados
-    
-    Archivos de Configuración:
-    
-        .env.example: Plantilla de configuración con valores por defecto
-        - Configuración de desarrollo (DEBUG=True)
-        - Parámetros de procesamiento (CHUNK_SIZE=100000, MAX_WORKERS=14)
-        - Modo de rendimiento (PERFORMANCE_MODE=1)
-        - Aceleración de hardware (USE_MPS=True, MPS_FALLBACK=True)
-        
-        .env: Archivo de configuración local (vacío por defecto)
-        
-        .dockerignore: Exclusiones para contenedores Docker
-        - backup/, .env, archivos cache, logs
-    
-    Estado del Commit:
-    
-        Commit: 5a54f0e - "feat: initialize new project structure for CMMSE 2025"
-        - 41 archivos modificados
-        - Nueva estructura de paquetes creada
-        - Archivos de configuración inicializados
-        - Limpieza de archivos legacy de reportes
-        
-    Propósito: Preparación para publicación académica en CMMSE 2025 con estructura modular y configuración optimizada para Apple Silicon.
-
-9. Step 3 Completed: Project Metadata Updates
-
-    Commit: bc48b70 - "chore: update project metadata for CMMSE 2025"
-    
-    Actualizaciones Realizadas:
-    
-        pyproject.toml:
-        - Version actualizada a 0.2.0
-        - Descripción específica: "Mobile Network Anomaly Detection Pipeline Optimized for Apple Silicon"
-        - Metadata completa: autor, licencia, readme, keywords
-        - Keywords académicas: anomaly-detection, mobile-networks, apple-silicon, machine-learning
-        - Dependencia torch>=2.2.0 añadida (soporte MPS)
-        - Dependencia python-dotenv>=1.0.0 añadida
-        - Configuración completa dev dependencies (pytest, black, isort, mypy)
-        - Build system con hatchling
-        - Configuración de herramientas (pytest, black, isort)
-        
-        README.md:
-        - Enfoque CMMSE 2025 conference
-        - Instalación con uv tool
-        - Configuración .env
-        - Estado de desarrollo académico
-        - Eliminación del contenido legacy técnico
-        
-    Cambios:
-    - 2 archivos modificados
-    - 60 inserciones, 264 eliminaciones
-    - Estructura lista para publicación académica
-
-10. Step 4 Completed: Core Pipeline Implementation
-
-    Commit: 8daabb0 - "feat: implement core 4-stage pipeline for CMMSE 2025"
-    
-    Scripts Implementados (Enfoque Académico Simplificado):
-    
-        scripts/01_data_ingestion.py:
-        - Ingesta de datos con optimización Apple Silicon
-        - Procesamiento paralelo de archivos .txt
-        - Conversión de timestamps y limpieza inicial
-        - Estructura clara y documentada para investigación
-        
-        scripts/02_data_preprocessing.py:
-        - Agregación por cell_id y timestamp
-        - Fusión de columnas direccionales (SMS/llamadas)
-        - Validación completa de calidad de datos
-        - Salida en formato Parquet optimizado
-        
-        scripts/03_week_selection.py:
-        - Análisis MAD (Median Absolute Deviation)
-        - Selección de semanas de referencia "normales"
-        - Configuración parametrizable
-        - Datos de entrenamiento para detección de anomalías
-        
-        scripts/04_anomaly_detection_osp.py:
-        - Implementación OSP con descomposición SVD
-        - Modelos per-celda de detección de anomalías
-        - Procesamiento paralelo escalable
-        - Configuración flexible de parámetros
-        
-        scripts/run_pipeline.py:
-        - Ejecutor completo del pipeline 4-etapas
-        - Gestión automática de archivos intermedios
-        - Resumen de rendimiento y tiempos
-        - Configuración centralizada de parámetros
-    
-    README.md Actualizado:
-    
-        - Documentación completa del pipeline 4-etapas
-        - Instrucciones de uso individual y completo
-        - Ejemplos de ejecución con parámetros
-        - Enfoque en facilidad de uso para investigación
-    
-    Características del Enfoque Académico:
-    
-        - Código limpio y bien documentado
-        - Eliminación de complejidad innecesaria
-        - Enfoque en reproducibilidad
-        - Optimización Apple Silicon mantenida
-        - Scripts numerados para claridad de flujo
-        - Documentación inline extensa
-        - Configuración via argumentos de línea de comandos
-    
-    Cambios del Commit:
-    - 6 archivos modificados
-    - 1,187 inserciones, 5 eliminaciones
-    - 5 scripts nuevos creados
-    - README actualizado con documentación completa
-    
-    Estado: Pipeline core completado y listo para CMMSE 2025
-
-11. Finalización y Verificación Completa
-
-    Commit: b3f9584 - "docs: add comprehensive configuration documentation"
-    
-    Actividades de Cierre Realizadas:
-    
-        Limpieza Final del Repositorio:
-        - Eliminación de archivos .env no utilizados (scripts usan argumentos CLI)
-        - Remoción de dependencias no utilizadas (python-dotenv, aiofiles)
-        - Eliminación de directorios vacíos (src/, tests/, config/, docs/)
-        - Remoción de archivos legacy (main.py, uv.lock, .dockerignore)
-        
-        Verificación Completa del Pipeline:
-        - Test completo de pipeline end-to-end exitoso
-        - Rendimiento verificado: 915.95s (15.27 min) tiempo total
-        - Tasa de anomalías consistente: 6.33% (5.65M anomalías)
-        - 100% tasa de éxito (10,000/10,000 celdas procesadas)
-        - Todos los archivos de salida generados correctamente
-        
-        Documentación Final:
-        - README.md actualizado con sección de configuración completa
-        - Documentación de parámetros CLI para todos los scripts
-        - Tabla de parámetros comunes y específicos por etapa
-        - Ejemplos de uso individual y pipeline completo
-        - Resultados de rendimiento verificados incluidos
-        
-    Estructura Final Minimalista:
-    
-        Edge-Mobile-Anomaly-Detection-Apple/
-        ├── .context                    # Contexto del proyecto
-        ├── .gitignore                 # Reglas de git
-        ├── .python-version            # Versión Python
-        ├── LICENSE                    # Licencia
-        ├── README.md                  # Documentación completa
-        ├── requirements.txt           # Dependencias mínimas
-        └── scripts/                   # Pipeline 5 scripts
-            ├── 01_data_ingestion.py
-            ├── 02_data_preprocessing.py
-            ├── 03_week_selection.py
-            ├── 04_anomaly_detection_osp.py
-            └── run_pipeline.py
-    
-    Logros del Refactor CMMSE 2025:
-    
-        ✅ Arquitectura Académica: Código limpio, simple y reproducible
-        ✅ Rendimiento Verificado: Pipeline funcional al 100%
-        ✅ Optimización Apple Silicon: Mantenida y funcionando
-        ✅ Documentación Completa: README con configuración y ejemplos
-        ✅ Minimalismo: Solo archivos esenciales, sin complejidad innecesaria
-        ✅ Reproducibilidad: Scripts autosuficientes con argumentos CLI
-        ✅ Escalabilidad: Procesamiento paralelo para datasets grandes
-        ✅ Flexibilidad: Parámetros configurables para investigación
-        ✅ Calidad Académica: Listo para publicación CMMSE 2025
-    
-    Rendimiento Final Verificado (Apple Silicon M4 Pro):
-    
-        Dataset: 62 archivos, 319.9M filas (Dataset Milano Telecom completo)
-        
-        Etapa 1 (Ingesta):           179.69s | 1.82M filas/s
-        Etapa 2 (Preprocesamiento):  143.28s | 2.23M filas/s  
-        Etapa 3 (Selección Semanas): 118.32s | 754K filas/s
-        Etapa 4 (Detección OSP):    474.66s | 189K muestras/s
-        
-        Pipeline Total: 915.95s (15.27 min) | 347K filas/s
-        
-        Resultados: 5.65M anomalías detectadas (6.33% tasa)
-        Éxito: 100% (10,000/10,000 celdas procesadas)
-        Compresión: 72% reducción por agregación
-        
-    Estado Final: ✅ COMPLETO - Refactor CMMSE 2025 exitoso
+Edge-Mobile Anomaly Detection Apple - Project Context
+====================================================
+
+1. PROJECT OVERVIEW
+==================
+
+Project: Mobile Network Anomaly Detection Pipeline Optimized for Apple Silicon
+Purpose: Academic research for CMMSE 2025 conference submission
+Repository: https://github.com/josemifv/Edge-Mobile-Anomaly-Detection-Apple.git
+Branch: cmmse2025 (current development branch)
+Python Version: 3.13.2 (managed with uv tool)
+
+Academic Focus:
+- Enhanced mobile network anomaly detection pipeline
+- Hardware optimization for Apple Silicon (M-series processors) 
+- OSP (Orthogonal Subspace Projection) based anomaly detection
+- Research-grade implementation with reproducible results
+
+2. CURRENT REPOSITORY STRUCTURE
+===============================
+
+Edge-Mobile-Anomaly-Detection-Apple/
+├── .git/                          # Git version control
+├── .gitignore                     # Git ignore patterns
+├── .python-version                # Python 3.13 specification
+├── .venv/                         # Virtual environment (uv-managed)
+├── LICENSE                        # MIT License (José Miguel Franco-Valiente)
+├── README.md                      # Complete project documentation
+├── requirements.txt               # Python dependencies
+├── backup/                        # Backup directory (git-ignored)
+├── data/                          # Data storage
+│   ├── raw@ -> ../../datasets/milan_telecom/raw  # Symlink to raw data
+│   └── processed/                 # Processed data files
+│       ├── ingested_data.parquet     # Stage 1 output (4.4GB, 319.9M rows)
+│       ├── preprocessed_data.parquet # Stage 2 output (2.0GB, 89.2M rows)
+│       └── reference_weeks.parquet   # Stage 3 output (479KB, 39.4K refs)
+├── results/                       # Analysis outputs and results
+│   ├── anomalies.parquet             # Standard anomaly detection results
+│   ├── full_individual_anomalies.parquet  # Individual anomaly records (148MB)
+│   ├── severe_anomalies_top_*.csv    # Severity analysis reports
+│   ├── figures/                      # Visualization outputs
+│   ├── benchmarks/                   # Performance benchmark results
+│   └── data/                         # Micro test results by configuration
+└── scripts/                       # Core pipeline implementation (9 scripts)
+    ├── 01_data_ingestion.py             # Stage 1: Data loading & preprocessing
+    ├── 02_data_preprocessing.py         # Stage 2: Aggregation & validation
+    ├── 03_week_selection.py             # Stage 3: Reference week selection
+    ├── 04_anomaly_detection_osp.py      # Stage 4: OSP anomaly detection
+    ├── 04_anomaly_detection_osp_detailed.py  # Enhanced individual tracking
+    ├── analyze_severe_anomalies.py      # Severity analysis tools
+    ├── benchmark_parameter_sweep.py     # Comprehensive parameter optimization
+    ├── benchmark_micro_test.py          # Quick system validation
+    └── run_pipeline.py                  # Complete pipeline orchestrator
+
+3. CORE PIPELINE ARCHITECTURE (4 STAGES)
+========================================
+
+Stage 1: Data Ingestion (01_data_ingestion.py)
+- Input: Raw .txt files from Milano Telecom dataset
+- Processing: Parallel file loading optimized for Apple Silicon
+- Features: Timestamp conversion, column standardization, data type optimization
+- Output: ingested_data.parquet (319.9M rows, 4.4GB)
+- Performance: 1.77M rows/second (181.02s execution)
+
+Stage 2: Data Preprocessing (02_data_preprocessing.py)
+- Input: Ingested data from Stage 1
+- Processing: Cell-wise aggregation, directional column merging, validation
+- Features: SMS/call consolidation, quality checks, 72% data compression
+- Output: preprocessed_data.parquet (89.2M rows, 2.0GB)
+- Performance: 564K rows/second (159.17s execution)
+
+Stage 3: Reference Week Selection (03_week_selection.py)
+- Input: Preprocessed data from Stage 2
+- Processing: MAD (Median Absolute Deviation) analysis for normal week identification
+- Features: ISO week numbering, statistical outlier detection, configurable thresholds
+- Output: reference_weeks.parquet (39.4K reference weeks)
+- Performance: 795K rows/second (112.27s execution)
+
+Stage 4: OSP Anomaly Detection (04_anomaly_detection_osp.py)
+- Input: Preprocessed data + reference weeks from Stages 2 & 3
+- Processing: Orthogonal Subspace Projection with SVD decomposition
+- Features: Per-cell modeling, parallel processing, configurable parameters
+- Output: anomalies.parquet (5.65M anomalies detected, 6.33% rate)
+- Performance: 190K samples/second (469.97s execution)
+
+4. ALGORITHM IMPLEMENTATION
+==========================
+
+OSP (Orthogonal Subspace Projection) Anomaly Detection:
+- Mathematical foundation: SVD decomposition X = UΣV^T
+- Normal subspace projection with reconstruction error calculation
+- Anomaly scoring: ||residuals||_2 compared to threshold
+- Per-cell training using reference weeks from Stage 3
+- Configurable parameters:
+  * n_components: SVD dimensions (default: 3)
+  * anomaly_threshold: Standard deviation multiplier (default: 2.0)
+  * standardize: Feature standardization (default: True)
+
+Enhanced Individual Tracking (04_anomaly_detection_osp_detailed.py):
+- Individual anomaly record capture with timestamps
+- Severity scoring: (anomaly_score - training_mean) / training_std
+- Traffic feature preservation for analysis
+- Excess factor calculation (threshold multiples)
+
+5. PERFORMANCE ACHIEVEMENTS (Apple Silicon M4 Pro)
+==================================================
+
+Dataset: Milano Telecom (62 files, 319.9M rows, Nov 2013 - Jan 2014)
+
+Pipeline Performance:
+- Stage 1: 181.02s | 1.77M rows/sec | 319.9M → 319.9M rows
+- Stage 2: 159.17s | 564K rows/sec | 319.9M → 89.2M rows (72% compression)
+- Stage 3: 112.27s | 795K rows/sec | 39.4K reference weeks selected
+- Stage 4: 469.97s | 190K samples/sec | 5.65M anomalies (6.33% rate)
+- Total: 922.43s (15.37 minutes) | 347K rows/sec overall
+
+Key Metrics:
+- Success rate: 100% (10,000/10,000 cells processed)
+- Data compression: 72% through aggregation
+- Anomaly detection rate: 6.33% average across all cells
+- Memory efficiency: 5.6GB peak usage
+- Reference weeks: 39.4K selected (≈4 per cell average)
+
+Anomaly Severity Analysis:
+- Severity range: 2.0σ to 5,717σ (standard deviations above normal)
+- Most severe cell: 5240 (multiple extreme anomalies)
+- Peak anomaly patterns: Night hours (01:00-02:00), weekdays
+- Traffic characteristics: High call volumes without proportional SMS/internet
+
+6. APPLE SILICON OPTIMIZATIONS
+==============================
+
+Hardware Acceleration:
+- Native ARM64 compilation (aarch64 architecture)
+- PyTorch MPS (Metal Performance Shaders) support enabled
+- Automatic CPU core detection and utilization
+- Optimized multiprocessing for M-series processors
+
+Software Optimizations:
+- NumPy/SciPy ARM64 optimized versions
+- scikit-learn Apple Silicon compilation
+- Parallel processing strategies for file I/O and computation
+- Memory-efficient data structures and operations
+
+Configuration:
+- Default workers: Auto-detected (8-14 for M-series)
+- Virtual environment: Python 3.13.2 with uv package manager
+- Dependencies: All Apple Silicon native packages
+
+7. DEVELOPMENT TOOLS & ENVIRONMENT
+==================================
+
+Python Environment:
+- Python 3.13.2 (specified in .python-version)
+- Package manager: uv 0.6.14 (Astral's fast tool)
+- Virtual environment: .venv/ (properly isolated)
+- Dependencies: requirements.txt (traditional approach for academic simplicity)
+
+Core Dependencies:
+- pandas ≥2.3.0 (data processing)
+- numpy ≥2.2.6 (numerical computing)
+- pyarrow ≥20.0.0 (parquet I/O)
+- scikit-learn ≥1.7.0 (machine learning)
+- torch ≥2.2.0 (MPS support for Apple Silicon)
+- matplotlib ≥3.10.3, seaborn ≥0.13.2 (visualization)
+- psutil ≥7.0.0 (system monitoring)
+
+Development Tools:
+- pytest ≥8.0.0 (testing framework)
+- black ≥24.1.0 (code formatting)
+- isort ≥5.13.0 (import sorting)
+
+8. ACADEMIC RESEARCH FEATURES
+=============================
+
+CMMSE 2025 Conference Focus:
+- Clean, documented code structure for academic publication
+- Reproducible results with parameter control
+- Comprehensive performance benchmarking
+- Individual anomaly analysis capabilities
+
+Research Tools:
+- Parameter sweep framework (benchmark_parameter_sweep.py)
+- Quick validation testing (benchmark_micro_test.py)
+- Severity analysis with visualizations (analyze_severe_anomalies.py)
+- Individual anomaly tracking for case studies
+
+Documentation:
+- Complete README with usage examples
+- Inline code documentation and academic comments
+- Performance results and configuration tables
+- Research-grade implementation standards
+
+9. CURRENT PROJECT STATUS
+=========================
+
+Development Branch: cmmse2025
+Last Commit: eee6bcb - "docs: finalize CMMSE 2025 refactor documentation"
+
+Completed Components:
+✅ Core 4-stage pipeline fully implemented and tested
+✅ Apple Silicon optimization verified and documented
+✅ Complete dataset processing (100% success rate)
+✅ Individual anomaly analysis framework
+✅ Comprehensive benchmarking tools
+✅ Academic documentation for CMMSE 2025
+✅ Clean repository structure with minimal dependencies
+
+Testing Status:
+✅ End-to-end pipeline verification completed
+✅ Performance benchmarking on full dataset
+✅ Individual anomaly analysis validated
+✅ Micro testing framework operational
+
+Repository Health:
+✅ Clean commit history with academic focus
+✅ Proper dependency management with uv
+✅ Data directories excluded from version control
+✅ Backup system implemented
+✅ Documentation complete and current
+
+10. USAGE EXAMPLES
+==================
+
+Individual Stage Execution:
+```bash
+# Stage 1: Data Ingestion
+python scripts/01_data_ingestion.py data/raw/ --output_path data/processed/ingested_data.parquet
+
+# Stage 2: Data Preprocessing  
+python scripts/02_data_preprocessing.py data/processed/ingested_data.parquet --output_path data/processed/preprocessed_data.parquet
+
+# Stage 3: Reference Week Selection
+python scripts/03_week_selection.py data/processed/preprocessed_data.parquet --output_path data/processed/reference_weeks.parquet
+
+# Stage 4: OSP Anomaly Detection
+python scripts/04_anomaly_detection_osp.py data/processed/preprocessed_data.parquet data/processed/reference_weeks.parquet --output_path results/anomalies.parquet
+```
+
+Complete Pipeline:
+```bash
+# Run complete 4-stage pipeline
+python scripts/run_pipeline.py data/raw/ --output_dir results/
+
+# With custom parameters
+python scripts/run_pipeline.py data/raw/ --output_dir results/ --n_components 5 --anomaly_threshold 2.5 --preview
+```
+
+Enhanced Analysis:
+```bash
+# Generate individual anomaly data
+python scripts/04_anomaly_detection_osp_detailed.py data/processed/preprocessed_data.parquet data/processed/reference_weeks.parquet --individual_output_path results/full_individual_anomalies.parquet
+
+# Analyze severe anomalies
+python scripts/analyze_severe_anomalies.py results/full_individual_anomalies.parquet --top_n 20 --generate_plots --export_report
+```
+
+11. NEXT RESEARCH DIRECTIONS
+============================
+
+Potential Extensions:
+- Additional anomaly detection algorithms (Isolation Forest, Autoencoders)
+- Time series feature engineering enhancements
+- Spatial correlation analysis between cells
+- Real-time anomaly detection capabilities
+- Comparative studies with other hardware architectures
+
+Academic Applications:
+- Network incident investigation frameworks
+- Capacity planning optimization
+- Security monitoring for telecom networks
+- Quality of service enhancement strategies
+
+Publication Ready:
+- Code structure optimized for academic review
+- Comprehensive documentation and examples
+- Reproducible results with clear methodology
+- Performance benchmarks for Apple Silicon architecture
+
+==========================================
+Status: ✅ COMPLETE - CMMSE 2025 Ready
+Last Updated: June 21, 2025
+==========================================
