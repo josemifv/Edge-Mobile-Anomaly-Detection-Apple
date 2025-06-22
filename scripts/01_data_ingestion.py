@@ -42,10 +42,12 @@ def load_single_file(file_path: str) -> pd.DataFrame:
     start_time = time.perf_counter()
     
     try:
-        # Read file with space-separated values
+        # Read file with space-separated values 
+        # Note: Using regex sep forces Python engine, but needed for variable whitespace
+        # Performance optimization: Specify dtypes upfront for faster parsing
         df = pd.read_csv(
             file_path,
-            sep=r'\s+',
+            sep=r'\s+',  # Use raw string to avoid escape sequence warning
             header=None,
             names=COLUMN_NAMES,
             dtype={
@@ -57,11 +59,25 @@ def load_single_file(file_path: str) -> pd.DataFrame:
                 'call_in': 'float64',
                 'call_out': 'float64',
                 'internet_traffic': 'float64'
-            }
+            },
+            # Performance optimizations
+            low_memory=False,
+            na_values=[''],  # Handle empty strings as NaN
+            keep_default_na=True  # Keep default NaN handling for robustness
         )
         
         # Convert timestamp from milliseconds to datetime
+        initial_rows = len(df)
         df['timestamp'] = pd.to_datetime(df['timestamp_ms'], unit='ms', errors='coerce')
+        
+        # Check for and handle NaT (Not-a-Time) values from timestamp conversion
+        nat_mask = df['timestamp'].isna()
+        nat_count = nat_mask.sum()
+        
+        if nat_count > 0:
+            print(f"  WARNING: {nat_count} rows with invalid timestamps (NaT) will be dropped")
+            df = df[~nat_mask].copy()
+            print(f"  Kept {len(df):,} valid rows out of {initial_rows:,} ({(len(df)/initial_rows)*100:.1f}%)")
         
         # Drop unnecessary columns
         df = df.drop(columns=['timestamp_ms', 'country_code'])
