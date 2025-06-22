@@ -150,7 +150,7 @@ def main():
             print("\n" + "="*40)
             print("DATA PREVIEW")
             print("="*40)
-            print(df_processed.info())
+            df_processed.info()
             print("\nFirst 5 rows:")
             print(df_processed.head())
             print("\nData statistics:")

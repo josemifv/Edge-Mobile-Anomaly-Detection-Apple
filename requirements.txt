@@ -5,14 +5,14 @@ pyarrow>=20.0.0
 
 # Machine learning dependencies  
 scikit-learn>=1.7.0
-torch>=2.2.0
 
 # Visualization dependencies
 matplotlib>=3.10.3
 seaborn>=0.13.2
 
-# Utility dependencies
-psutil>=7.0.0
+# Interactive mapping dependencies
+folium>=0.14.0
+plotly>=5.15.0
 
 # Development dependencies (optional)
 pytest>=8.0.0

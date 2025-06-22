@@ -254,7 +254,7 @@ def main():
             print("\n" + "="*40)
             print("REFERENCE WEEKS PREVIEW")
             print("="*40)
-            print(reference_weeks.info())
+            reference_weeks.info()
             print("\nFirst 10 reference weeks:")
             print(reference_weeks.head(10))
             print("\nReference weeks per cell distribution:")

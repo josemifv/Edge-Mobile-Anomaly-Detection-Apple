@@ -24,7 +24,9 @@ import seaborn as sns
 from pathlib import Path
 from datetime import datetime
 import warnings
-warnings.filterwarnings('ignore')
+# Suppress specific known warnings while preserving error visibility
+warnings.filterwarnings('ignore', category=UserWarning, module='pandas')
+warnings.filterwarnings('ignore', category=FutureWarning, module='pandas')
 
 
 class AnomalyAnalyzer:
@@ -402,6 +404,17 @@ def main():
         
         # Run complete analysis
         results = analyzer.run_complete_analysis(args.top_n_severe)
+        
+        # Show preview if requested
+        if args.preview:
+            print("\n" + "="*40)
+            print("ANALYSIS PREVIEW")
+            print("="*40)
+            anomalies_df.info()
+            print("\nSeverity score statistics:")
+            print(anomalies_df['severity_score'].describe())
+            print("\nTop 5 cells with most anomalies:")
+            print(anomalies_df['cell_id'].value_counts().head())
         
         # Performance summary
         total_time = time.perf_counter() - start_time

@@ -19,7 +19,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import warnings
-warnings.filterwarnings('ignore')
+# Suppress specific known warnings while preserving error visibility
+warnings.filterwarnings('ignore', category=UserWarning, module='pandas')
+warnings.filterwarnings('ignore', category=FutureWarning, module='pandas')
 
 
 def analyze_severe_anomalies(individual_df: pd.DataFrame, top_n: int = 10) -> None:

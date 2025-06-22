@@ -25,7 +25,9 @@ from typing import List, Dict, Tuple
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import TruncatedSVD
 import warnings
-warnings.filterwarnings('ignore')
+# Suppress specific known warnings while preserving error visibility
+warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
+warnings.filterwarnings('ignore', category=FutureWarning, module='sklearn')
 
 # Feature columns for OSP analysis
 FEATURE_COLUMNS = ['sms_total', 'calls_total', 'internet_traffic']
@@ -306,7 +308,7 @@ def main():
             print("\n" + "="*40)
             print("INDIVIDUAL ANOMALIES PREVIEW")
             print("="*40)
-            print(anomalies_df.info())
+            anomalies_df.info()
             print("\nTop 5 most severe anomalies:")
             top_5 = anomalies_df.nlargest(5, 'severity_score')
             for i, (_, anomaly) in enumerate(top_5.iterrows(), 1):

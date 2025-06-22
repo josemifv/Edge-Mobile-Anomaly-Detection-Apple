@@ -27,7 +27,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.offline import plot
 import warnings
-warnings.filterwarnings('ignore')
+# Suppress specific known warnings while preserving error visibility
+warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
+warnings.filterwarnings('ignore', category=FutureWarning, module='pandas')
 
 
 class AnomalyMapGenerator:

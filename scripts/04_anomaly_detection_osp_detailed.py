@@ -24,7 +24,9 @@ import multiprocessing
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import TruncatedSVD
 import warnings
-warnings.filterwarnings('ignore')
+# Suppress specific known warnings while preserving error visibility
+warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
+warnings.filterwarnings('ignore', category=FutureWarning, module='sklearn')
 
 # Feature columns for OSP analysis
 FEATURE_COLUMNS = ['sms_total', 'calls_total', 'internet_traffic']
@@ -126,7 +128,7 @@ def process_single_cell_detailed(args: tuple) -> Dict:
     cell_id, cell_data, reference_weeks_for_cell, detector_params, return_details = args
     
     try:
-        start_time = time.time()
+        start_time = time.perf_counter()
         
         # Check if we have reference weeks for this cell
         if len(reference_weeks_for_cell) == 0:
@@ -226,7 +228,7 @@ def process_single_cell_detailed(args: tuple) -> Dict:
         # Create summary results
         anomalies_detected = np.sum(anomaly_labels)
         anomaly_rate = anomalies_detected / len(anomaly_labels)
-        processing_time = time.time() - start_time
+        processing_time = time.perf_counter() - start_time
         
         return {
             'cell_id': cell_id,
@@ -406,7 +408,7 @@ def main():
             print("\n" + "="*40)
             print("INDIVIDUAL ANOMALIES PREVIEW")
             print("="*40)
-            print(individual_df.info())
+            individual_df.info()
             print("\nSeverity score statistics:")
             print(individual_df['severity_score'].describe())
             print("\nCells with most anomalies:")
