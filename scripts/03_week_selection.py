@@ -180,12 +180,12 @@ def select_reference_weeks(mad_df: pd.DataFrame, num_weeks: int = 4, mad_thresho
         # Select top N normal weeks, or all available if fewer than N
         selected_weeks = normal_weeks.head(num_weeks)
         
-        for _, week_row in selected_weeks.iterrows():
+        for rank, (_, week_row) in enumerate(selected_weeks.iterrows(), start=1):
             reference_weeks.append({
                 'cell_id': week_row['cell_id'],
                 'reference_week': week_row['year_week'],
                 'avg_deviation': week_row['avg_abs_deviation'],
-                'selection_rank': len(reference_weeks) % num_weeks + 1
+                'selection_rank': rank
             })
     
     reference_df = pd.DataFrame(reference_weeks)

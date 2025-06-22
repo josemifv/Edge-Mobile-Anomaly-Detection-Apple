@@ -28,6 +28,7 @@ import warnings
 # Suppress specific known warnings while preserving error visibility
 warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
 warnings.filterwarnings('ignore', category=FutureWarning, module='sklearn')
+warnings.filterwarnings('ignore', category=RuntimeWarning, message='.*invalid value encountered.*')
 
 # Feature columns for OSP analysis
 FEATURE_COLUMNS = ['sms_total', 'calls_total', 'internet_traffic']
@@ -269,7 +270,7 @@ def main():
         print(f"Processing {len(tasks)} cells using {max_workers} workers...")
         
         # Process cells in parallel
-        with multiprocessing.Pool(max_workers) as pool:
+        with multiprocessing.Pool(processes=max_workers) as pool:
             results = pool.map(process_single_cell, tasks)
         
         # Compile results

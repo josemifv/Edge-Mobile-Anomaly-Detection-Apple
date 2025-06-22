@@ -90,7 +90,8 @@ class AnomalyMapGenerator:
         print(f"Classifying cells based on {classification_metric}...")
         
         # Add cells with zero anomalies (missing from analysis)
-        all_cell_ids = set(range(1, 10001))
+        # Extract all cell IDs from the GeoJSON data
+        all_cell_ids = {f['properties']['cellId'] for f in self.geojson_data['features']}
         analyzed_cell_ids = set(anomaly_df['cell_id'])
         missing_cell_ids = all_cell_ids - analyzed_cell_ids
         

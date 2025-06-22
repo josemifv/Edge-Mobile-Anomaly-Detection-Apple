@@ -223,7 +223,15 @@ Refactored Components:
 ✅ Comprehensive benchmarking tools
 ✅ Academic documentation for CMMSE 2025
 ✅ Clean repository structure with minimal dependencies
-✅ CODE REVIEW FIXES: General/cross-cutting improvements implemented
+✅ CODE REVIEW FIXES: All improvements from codex_review.md implemented
+  • Fixed warnings filtering to be more specific and scoped
+  • Updated README.md to reflect 5-stage pipeline architecture
+  • Fixed ranking logic in 03_week_selection.py for clarity
+  • Optimized CSV reading performance in 01_data_ingestion.py
+  • Fixed hardcoded cell ID limits in 06_generate_anomaly_map.py
+  • Standardized timing functions to use time.perf_counter()
+  • Fixed Pool arguments to use explicit processes= parameter
+  • Requirements.txt already had missing dependencies added
 
 Refactoring Benefits:
 ✅ Separation of detection and analysis concerns

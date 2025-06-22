@@ -273,7 +273,7 @@ def main():
         print(f"Processing {len(tasks)} cells using {max_workers} workers...")
         
         # Process cells in parallel
-        with multiprocessing.Pool(max_workers) as pool:
+        with multiprocessing.Pool(processes=max_workers) as pool:
             results = pool.map(process_single_cell_individual, tasks)
         
         # Flatten results and create DataFrame

@@ -2,7 +2,7 @@
 
 ## Project Overview
 Enhanced mobile network anomaly detection pipeline optimized for Apple Silicon, featuring:
-- 4-stage modular pipeline for telecommunications anomaly detection
+- 5-stage modular pipeline for telecommunications anomaly detection
 - OSP (Orthogonal Subspace Projection) based anomaly detection
 - Hardware-accelerated processing with Apple Silicon optimization
 - Academic research focus for CMMSE 2025 conference
@@ -49,7 +49,7 @@ All scripts use command-line arguments for configuration. No environment files n
 
 ## Pipeline Stages
 
-The pipeline consists of 4 sequential stages:
+The pipeline consists of 5 sequential stages:
 
 ### Stage 1: Data Ingestion (`01_data_ingestion.py`)
 - Loads raw telecommunications data from .txt files
@@ -69,11 +69,17 @@ The pipeline consists of 4 sequential stages:
 - Configurable selection criteria
 - Provides training data for anomaly detection
 
-### Stage 4: OSP Anomaly Detection (`04_anomaly_detection_osp.py`)
+### Stage 4: Individual Anomaly Detection (`04_anomaly_detection_individual.py`)
 - Implements Orthogonal Subspace Projection using SVD
-- Per-cell anomaly detection models
+- Per-cell anomaly detection models with individual record tracking
 - Uses reference weeks for normal behavior modeling
-- Parallel processing for scalability
+- Outputs individual anomaly records for detailed analysis
+
+### Stage 5: Comprehensive Anomaly Analysis (`05_analyze_anomalies.py`)
+- Analyzes individual anomaly records from Stage 4
+- Generates statistical summaries and visualizations
+- Creates temporal and cell-level pattern analysis
+- Produces research-grade reports and insights
 
 ## Usage
 
@@ -88,13 +94,16 @@ python scripts/02_data_preprocessing.py data/processed/ingested_data.parquet --o
 # Stage 3: Reference Week Selection
 python scripts/03_week_selection.py data/processed/preprocessed_data.parquet --output_path data/processed/reference_weeks.parquet
 
-# Stage 4: OSP Anomaly Detection
-python scripts/04_anomaly_detection_osp.py data/processed/preprocessed_data.parquet data/processed/reference_weeks.parquet --output_path results/anomalies.parquet
+# Stage 4: Individual Anomaly Detection
+python scripts/04_anomaly_detection_individual.py data/processed/preprocessed_data.parquet data/processed/reference_weeks.parquet --output_path data/processed/individual_anomalies.parquet
+
+# Stage 5: Comprehensive Anomaly Analysis
+python scripts/05_analyze_anomalies.py data/processed/individual_anomalies.parquet --output_dir results/analysis/
 ```
 
 ### Complete Pipeline Execution
 ```bash
-# Run complete 4-stage pipeline
+# Run complete 5-stage pipeline
 python scripts/run_pipeline.py data/raw/ --output_dir results/
 
 # With custom parameters
