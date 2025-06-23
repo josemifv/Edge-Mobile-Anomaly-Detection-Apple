@@ -24,6 +24,12 @@ class AnomalyAnalyzer:
     def _add_temporal_features(self):
         """Adds temporal features for analysis."""
         df = self.anomalies_df
+        
+        # Convert cell_id arrays to strings for hashability
+        if df['cell_id'].dtype == 'object':
+            # Convert numpy arrays to first element (assuming single cell IDs)
+            df['cell_id'] = df['cell_id'].apply(lambda x: x[0] if hasattr(x, '__len__') and len(x) > 0 else x)
+        
         df['hour'] = df['timestamp'].dt.hour
         df['day_of_week'] = df['timestamp'].dt.day_name()
 
