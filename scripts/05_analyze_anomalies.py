@@ -83,7 +83,13 @@ class AnomalyAnalyzer:
 
         # Anomalies by Hour
         plt.figure(figsize=(10, 6))
-        sns.countplot(x='hour', data=self.anomalies_df, palette='viridis')
+        sns.countplot(
+            x='hour',
+            data=self.anomalies_df,
+            hue='hour',          # evita el warning de Seaborn ≥ 0.14
+            palette='viridis',
+            legend=False
+        )        
         plt.title('Number of Anomalies by Hour of Day')
         plt.xlabel('Hour of Day')
         plt.ylabel('Anomaly Count')
