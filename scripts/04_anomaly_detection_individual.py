@@ -91,9 +91,6 @@ def process_single_cell(cell_tuple: tuple) -> pd.DataFrame:
         X_test = cell_df.select(FEATURE_COLUMNS).to_numpy()
         timestamps_test = cell_df['timestamp'].to_numpy()
 
-        # Debug: Check shapes
-        print(f"Cell {cell_id}: X_train shape: {X_train.shape}, X_test shape: {X_test.shape}, timestamps shape: {timestamps_test.shape}")
-        
         detector = OSPDetector(**detector_params)
         detector.fit(X_train)
         anomalies_df = detector.predict(X_test, timestamps_test)
@@ -102,7 +99,6 @@ def process_single_cell(cell_tuple: tuple) -> pd.DataFrame:
             # Ensure proper assignment by creating a column with the right length
             anomalies_df = anomalies_df.copy()
             anomalies_df['cell_id'] = [cell_id] * len(anomalies_df)
-            print(f"Cell {cell_id}: {len(anomalies_df)} anomalies detected.")
             # Reorder columns to match expected output format
             output_columns = ['cell_id', 'timestamp', 'anomaly_score'] + FEATURE_COLUMNS + ['severity_score']
             # Only select columns that exist in the DataFrame
@@ -166,8 +162,14 @@ def main():
     num_workers = args.max_workers or min(len(cell_tasks), os.cpu_count())
     print(f"Processing {len(cell_tasks)} cells using {num_workers} workers...")
     
+    results_dfs = []
     with multiprocessing.Pool(processes=num_workers) as pool:
-        results_dfs = pool.map(process_single_cell, cell_tasks)
+        # Use imap for progress tracking
+        for i, result in enumerate(pool.imap(process_single_cell, cell_tasks)):
+            results_dfs.append(result)
+            # Show progress every 1000 cells
+            if (i + 1) % 1000 == 0 or (i + 1) == len(cell_tasks):
+                print(f"Processed {i + 1:,}/{len(cell_tasks):,} cells ({(i + 1)/len(cell_tasks)*100:.1f}%)")
     
     all_anomalies_df = pd.concat(results_dfs, ignore_index=True)
     args.output_path.parent.mkdir(parents=True, exist_ok=True)
