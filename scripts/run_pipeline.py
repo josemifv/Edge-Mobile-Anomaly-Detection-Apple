@@ -5,14 +5,13 @@ run_pipeline.py
 CMMSE 2025: Mobile Network Anomaly Detection Pipeline
 Complete 5-Stage Pipeline Runner
 
-Executes the complete refactored 5-stage pipeline for mobile network anomaly detection.
-Optimized for Apple Silicon with configurable parameters.
+Executes the complete 5-stage pipeline for mobile network anomaly detection.
 
 Usage:
-    python scripts/run_pipeline.py <input_data_dir> [--output_dir <dir>]
+    python run_pipeline.py <input_data_dir> [--output_dir <dir>]
 
 Example:
-    python scripts/run_pipeline.py data/raw/ --output_dir results/
+    python run_pipeline.py inputs/raw/ --output_dir outputs/
 """
 
 import subprocess
@@ -20,7 +19,6 @@ import argparse
 import time
 from pathlib import Path
 import sys
-
 
 def run_stage(stage_num: int, script_name: str, args: list, description: str) -> float:
     """Run a single pipeline stage and return execution time."""
@@ -31,175 +29,97 @@ def run_stage(stage_num: int, script_name: str, args: list, description: str) ->
     start_time = time.perf_counter()
     
     try:
-        # Run the script
         cmd = [sys.executable, f"scripts/{script_name}"] + args
-        print(f"Executing: {' '.join(cmd)}")
+        print(f"Executing: {' '.join(str(c) for c in cmd)}")
         
-        result = subprocess.run(cmd, check=True, capture_output=False, text=True)
+        # Using check=True will raise CalledProcessError on non-zero exit codes
+        subprocess.run(cmd, check=True, text=True)
         
         duration = time.perf_counter() - start_time
-        print(f"\n✅ Stage {stage_num} completed successfully in {duration:.2f} seconds")
+        print(f"\n✅ Stage {stage_num} completed successfully in {duration:.2f} seconds.")
         return duration
         
     except subprocess.CalledProcessError as e:
         duration = time.perf_counter() - start_time
-        print(f"\n❌ Stage {stage_num} failed after {duration:.2f} seconds")
+        print(f"\n❌ Stage {stage_num} FAILED after {duration:.2f} seconds.")
         print(f"Error: {e}")
+        # The CalledProcessError might not capture stdout/stderr well unless redirected.
+        # The failing script's own output should indicate the error.
+        sys.exit(1)
+    except FileNotFoundError:
+        print(f"\n❌ Stage {stage_num} FAILED. Script 'scripts/{script_name}' not found.")
         sys.exit(1)
 
 
 def main():
     """Main execution function."""
     parser = argparse.ArgumentParser(description="CMMSE 2025: Complete 5-Stage Pipeline Runner")
-    parser.add_argument("input_data_dir", help="Directory containing raw .txt data files")
-    parser.add_argument("--output_dir", default="results/", help="Output directory for results")
-    parser.add_argument("--max_workers", type=int, help="Max parallel processes")
+    parser.add_argument("input_dir", type=Path, help="Directory containing raw .txt data files (e.g., inputs/raw)")
+    parser.add_argument("--output_dir", type=Path, default="outputs/", help="Base directory for all generated outputs")
+    parser.add_argument("--reports_dir", type=Path, default="reports/", help="Directory for final analysis reports")
+    parser.add_argument("--max_workers", type=int, help="Max parallel processes for applicable stages")
     parser.add_argument("--n_components", type=int, default=3, help="OSP SVD components")
     parser.add_argument("--anomaly_threshold", type=float, default=2.0, help="OSP anomaly threshold")
-    parser.add_argument("--sample_cells", type=int, help="Process only N cells for testing")
-    parser.add_argument("--preview", action="store_true", help="Show data previews")
+    parser.add_argument("--preview", action="store_true", help="Show data previews after each stage")
     
     args = parser.parse_args()
     
-    print("="*80)
-    print("CMMSE 2025: MOBILE NETWORK ANOMALY DETECTION PIPELINE")
-    print("Complete 5-Stage Execution (Refactored)")
-    print("="*80)
-    print(f"Input data: {args.input_data_dir}")
+    print("="*80); print("CMMSE 2025: ANOMALY DETECTION PIPELINE - START"); print("="*80)
+    print(f"Input data: {args.input_dir}")
     print(f"Output directory: {args.output_dir}")
+    print(f"Reports directory: {args.reports_dir}")
+
+    # Define output paths for each stage
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    args.reports_dir.mkdir(parents=True, exist_ok=True)
     
-    # Create output directories
-    output_path = Path(args.output_dir)
-    data_path = output_path / "data"
-    analysis_path = output_path / "analysis"
-    data_path.mkdir(parents=True, exist_ok=True)
-    analysis_path.mkdir(parents=True, exist_ok=True)
-    
+    path_stage1_out = args.output_dir / "01_ingested_data.parquet"
+    path_stage2_out = args.output_dir / "02_preprocessed_data.parquet"
+    path_stage3_out = args.output_dir / "03_reference_weeks.parquet"
+    path_stage4_out = args.output_dir / "04_individual_anomalies.parquet"
+
     # Track execution times
     stage_times = {}
     pipeline_start = time.perf_counter()
     
-    # Stage 1: Data Ingestion
-    stage1_args = [
-        args.input_data_dir,
-        "--output_path", str(data_path / "ingested_data.parquet")
-    ]
-    if args.max_workers:
-        stage1_args.extend(["--max_workers", str(args.max_workers)])
+    common_args = ["--preview"] if args.preview else []
     
-    stage_times['stage1'] = run_stage(
-        1, "01_data_ingestion.py", stage1_args, 
-        "Data Ingestion and Initial Processing"
-    )
+    # Stage 1: Data Ingestion
+    stage1_args = [str(args.input_dir), "--output_path", str(path_stage1_out)] + common_args
+    stage_times['stage1'] = run_stage(1, "01_data_ingestion.py", stage1_args, "Data Ingestion")
     
     # Stage 2: Data Preprocessing  
-    stage2_args = [
-        str(data_path / "ingested_data.parquet"),
-        "--output_path", str(data_path / "preprocessed_data.parquet")
-    ]
-    if args.preview:
-        stage2_args.append("--preview")
-    
-    stage_times['stage2'] = run_stage(
-        2, "02_data_preprocessing.py", stage2_args,
-        "Data Preprocessing and Aggregation"
-    )
+    stage2_args = [str(path_stage1_out), "--output_path", str(path_stage2_out)] + common_args
+    stage_times['stage2'] = run_stage(2, "02_data_preprocessing.py", stage2_args, "Data Preprocessing & Aggregation")
     
     # Stage 3: Reference Week Selection
-    stage3_args = [
-        str(data_path / "preprocessed_data.parquet"),
-        "--output_path", str(data_path / "reference_weeks.parquet")
-    ]
-    if args.preview:
-        stage3_args.append("--preview")
+    stage3_args = [str(path_stage2_out), "--output_path", str(path_stage3_out)] + common_args
+    stage_times['stage3'] = run_stage(3, "03_week_selection.py", stage3_args, "Reference Week Selection")
     
-    stage_times['stage3'] = run_stage(
-        3, "03_week_selection.py", stage3_args,
-        "Reference Week Selection"
-    )
-    
-    # Stage 4: Individual OSP Anomaly Detection
+    # Stage 4: OSP Anomaly Detection
     stage4_args = [
-        str(data_path / "preprocessed_data.parquet"),
-        str(data_path / "reference_weeks.parquet"),
-        "--output_path", str(data_path / "individual_anomalies.parquet"),
+        str(path_stage2_out),
+        str(path_stage3_out),
+        "--output_path", str(path_stage4_out),
         "--n_components", str(args.n_components),
         "--anomaly_threshold", str(args.anomaly_threshold)
-    ]
+    ] + common_args
     if args.max_workers:
         stage4_args.extend(["--max_workers", str(args.max_workers)])
-    if args.sample_cells:
-        stage4_args.extend(["--sample_cells", str(args.sample_cells)])
-    if args.preview:
-        stage4_args.append("--preview")
+    stage_times['stage4'] = run_stage(4, "04_anomaly_detection_individual.py", stage4_args, "OSP Anomaly Detection")
     
-    stage_times['stage4'] = run_stage(
-        4, "04_anomaly_detection_individual.py", stage4_args,
-        "Individual OSP Anomaly Detection"
-    )
+    # Stage 5: Anomaly Analysis
+    stage5_args = [str(path_stage4_out), "--output_dir", str(args.reports_dir)] + common_args
+    stage_times['stage5'] = run_stage(5, "05_analyze_anomalies.py", stage5_args, "Comprehensive Anomaly Analysis")
     
-    # Stage 5: Comprehensive Anomaly Analysis
-    stage5_args = [
-        str(data_path / "individual_anomalies.parquet"),
-        "--output_dir", str(analysis_path),
-        "--top_n_severe", "20"
-    ]
-    if args.preview:
-        stage5_args.append("--preview")
-    
-    stage_times['stage5'] = run_stage(
-        5, "05_analyze_anomalies.py", stage5_args,
-        "Comprehensive Anomaly Analysis"
-    )
-    
-    # Pipeline Summary
     total_time = time.perf_counter() - pipeline_start
     
-    print("\n" + "="*80)
-    print("PIPELINE EXECUTION SUMMARY")
-    print("="*80)
-    print(f"Stage 1 (Data Ingestion):        {stage_times['stage1']:8.2f} seconds")
-    print(f"Stage 2 (Data Preprocessing):    {stage_times['stage2']:8.2f} seconds") 
-    print(f"Stage 3 (Week Selection):        {stage_times['stage3']:8.2f} seconds")
-    print(f"Stage 4 (Individual Detection):  {stage_times['stage4']:8.2f} seconds")
-    print(f"Stage 5 (Anomaly Analysis):      {stage_times['stage5']:8.2f} seconds")
+    print("\n" + "="*80); print("PIPELINE EXECUTION SUMMARY"); print("="*80)
+    for i, desc in enumerate(["Data Ingestion", "Data Preprocessing", "Week Selection", "Anomaly Detection", "Anomaly Analysis"], 1):
+        print(f"Stage {i} ({desc:<22}): {stage_times[f'stage{i}']:8.2f} seconds")
     print("-" * 50)
-    print(f"Total Pipeline Time:             {total_time:8.2f} seconds")
-    print(f"Total Pipeline Time:             {total_time/60:8.2f} minutes")
-    
-    print(f"\nOutput files created in: {args.output_dir}")
+    print(f"Total Pipeline Time:             {total_time:8.2f} seconds ({total_time/60:.2f} minutes)")
     print("✅ Complete 5-stage pipeline executed successfully!")
-    
-    # Save execution summary
-    summary_file = output_path / "pipeline_summary.txt"
-    with open(summary_file, 'w') as f:
-        f.write("CMMSE 2025: Mobile Network Anomaly Detection Pipeline\n")
-        f.write("="*60 + "\n\n")
-        f.write(f"Execution Date: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"Input Directory: {args.input_data_dir}\n")
-        f.write(f"Output Directory: {args.output_dir}\n\n")
-        f.write("Stage Execution Times:\n")
-        f.write(f"  Stage 1 (Data Ingestion):        {stage_times['stage1']:8.2f} seconds\n")
-        f.write(f"  Stage 2 (Data Preprocessing):    {stage_times['stage2']:8.2f} seconds\n")
-        f.write(f"  Stage 3 (Week Selection):        {stage_times['stage3']:8.2f} seconds\n")
-        f.write(f"  Stage 4 (Individual Detection):  {stage_times['stage4']:8.2f} seconds\n")
-        f.write(f"  Stage 5 (Anomaly Analysis):      {stage_times['stage5']:8.2f} seconds\n")
-        f.write(f"  Total Pipeline Time:             {total_time:8.2f} seconds\n")
-        f.write(f"  Total Pipeline Time:             {total_time/60:8.2f} minutes\n\n")
-        f.write("OSP Configuration:\n")
-        f.write(f"  SVD Components: {args.n_components}\n")
-        f.write(f"  Anomaly Threshold: {args.anomaly_threshold}\n")
-        if args.sample_cells:
-            f.write(f"  Sample Cells: {args.sample_cells}\n")
-        f.write("\nPipeline Architecture:\n")
-        f.write("  Stage 1: Raw data ingestion and preprocessing\n")
-        f.write("  Stage 2: Data aggregation and validation\n")
-        f.write("  Stage 3: Reference week selection (MAD analysis)\n")
-        f.write("  Stage 4: Individual anomaly detection (OSP)\n")
-        f.write("  Stage 5: Comprehensive anomaly analysis\n")
-    
-    print(f"Execution summary saved to: {summary_file}")
-
 
 if __name__ == "__main__":
     main()
