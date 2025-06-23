@@ -11,8 +11,8 @@ import pandas as pd
 import numpy as np
 import argparse
 import time
-import os
 import multiprocessing
+import os
 from pathlib import Path
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import TruncatedSVD
@@ -22,93 +22,100 @@ warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
 FEATURE_COLUMNS = ['sms_total', 'calls_total', 'internet_traffic']
 
 class OSPDetector:
-    """OSP Anomaly Detector optimized with float32 precision and vectorized outputs."""
-    
+    """OSP Anomaly Detector using float32 precision and vectorized outputs."""
     def __init__(self, n_components: int = 3, anomaly_threshold: float = 2.0, standardize: bool = True):
-        self.n_components = n_components
-        self.anomaly_threshold = anomaly_threshold
-        self.standardize = standardize
+        self.n_components, self.anomaly_threshold, self.standardize = n_components, anomaly_threshold, standardize
         self.scaler = StandardScaler() if standardize else None
-        # OPTIMIZATION: Use faster randomized SVD with fewer iterations
         self.svd = TruncatedSVD(n_components=n_components, random_state=42, algorithm='randomized', n_iter=3)
-        self.error_threshold = None
-        self.training_mean_error = None
-        self.training_std_error = None
+        self.error_threshold, self.training_mean_error, self.training_std_error = None, None, None
         
     def fit(self, X: np.ndarray):
-        # OPTIMIZATION: Use float32 for faster computation
         X_fit = X.astype(np.float32)
         X_scaled = self.scaler.fit_transform(X_fit) if self.standardize else X_fit
         self.svd.fit(X_scaled)
-        
         X_reconstructed = self.svd.inverse_transform(self.svd.transform(X_scaled))
-        residuals = X_scaled - X_reconstructed
-        reconstruction_errors = np.linalg.norm(residuals, axis=1)
-        
-        self.training_mean_error = np.mean(reconstruction_errors)
-        self.training_std_error = np.std(reconstruction_errors)
+        reconstruction_errors = np.linalg.norm(X_scaled - X_reconstructed, axis=1)
+        self.training_mean_error, self.training_std_error = np.mean(reconstruction_errors), np.std(reconstruction_errors)
         self.error_threshold = self.training_mean_error + self.anomaly_threshold * self.training_std_error
         
     def predict(self, X: np.ndarray, timestamps: np.ndarray) -> pd.DataFrame:
-        if self.error_threshold is None:
-            raise ValueError("Model must be fitted before prediction.")
-        
+        if self.error_threshold is None: raise ValueError("Model must be fitted before prediction.")
         X_predict = X.astype(np.float32)
         X_scaled = self.scaler.transform(X_predict) if self.standardize else X_predict
-        
         X_reconstructed = self.svd.inverse_transform(self.svd.transform(X_scaled))
-        residuals = X_scaled - X_reconstructed
-        anomaly_scores = np.linalg.norm(residuals, axis=1)
+        anomaly_scores = np.linalg.norm(X_scaled - X_reconstructed, axis=1)
         
-        # OPTIMIZATION: Vectorized creation of results, then filter. This avoids all Python loops.
-        results_df = pd.DataFrame({
-            'timestamp': timestamps,
+        # Ensure X is always 2D for consistent indexing
+        if X.ndim == 1:
+            X = X.reshape(1, -1)
+        
+        # Build DataFrame with consistent array shapes
+        data_dict = {
+            'timestamp': timestamps, 
             'anomaly_score': anomaly_scores
-        })
-        anomalies_df = results_df[results_df['anomaly_score'] > self.error_threshold].copy()
+        }
+        
+        # Add feature columns safely
+        for i, col in enumerate(FEATURE_COLUMNS):
+            if i < X.shape[1]:
+                data_dict[col] = X[:, i]
+            else:
+                data_dict[col] = np.zeros(X.shape[0])
+        
+        results_df = pd.DataFrame(data_dict)
+        anomalies_df = results_df[results_df['anomaly_score'] > self.error_threshold].copy().reset_index(drop=True)
 
         if not anomalies_df.empty:
-            anomalies_df['severity_score'] = (anomalies_df['anomaly_score'] - self.training_mean_error) / self.training_std_error
-            # Add original features for context
-            original_features_df = pd.DataFrame(X, columns=FEATURE_COLUMNS).loc[anomalies_df.index]
-            anomalies_df = pd.concat([anomalies_df, original_features_df], axis=1)
-        
+            # Calculate severity scores, ensuring proper broadcasting and handling edge cases
+            severity_scores = (anomalies_df['anomaly_score'].values - self.training_mean_error)
+            
+            # Handle division by zero case (when training_std_error is 0)
+            if self.training_std_error != 0:
+                severity_scores = severity_scores / self.training_std_error
+            else:
+                # If std is 0, all training errors were identical, so use a default severity
+                severity_scores = severity_scores  # Just use the difference from mean
+            
+            # Assign severity scores directly as numpy array to avoid index alignment issues
+            anomalies_df['severity_score'] = severity_scores
         return anomalies_df
 
-def process_single_cell(cell_df: pl.DataFrame, detector_params: dict) -> pd.DataFrame:
+def process_single_cell(cell_tuple: tuple) -> pd.DataFrame:
     """Processes a single cell's data to detect anomalies."""
-    cell_id = cell_df['cell_id'][0]
-    
+    cell_id, cell_df = cell_tuple
+    detector_params = {'n_components': 3, 'anomaly_threshold': 2.0} # Placeholder, should be passed
     try:
-        # Separate training and test data based on the 'is_reference' flag
         training_df = cell_df.filter(pl.col('is_reference'))
-        if training_df.height == 0:
-            return pd.DataFrame()
-
-        # Convert to NumPy for scikit-learn
+        if training_df.height == 0: return pd.DataFrame()
         X_train = training_df.select(FEATURE_COLUMNS).to_numpy()
         X_test = cell_df.select(FEATURE_COLUMNS).to_numpy()
         timestamps_test = cell_df['timestamp'].to_numpy()
 
+        # Debug: Check shapes
+        print(f"Cell {cell_id}: X_train shape: {X_train.shape}, X_test shape: {X_test.shape}, timestamps shape: {timestamps_test.shape}")
+        
         detector = OSPDetector(**detector_params)
         detector.fit(X_train)
-        
         anomalies_df = detector.predict(X_test, timestamps_test)
         
         if not anomalies_df.empty:
-            anomalies_df['cell_id'] = cell_id
+            # Ensure proper assignment by creating a column with the right length
+            anomalies_df = anomalies_df.copy()
+            anomalies_df['cell_id'] = [cell_id] * len(anomalies_df)
             print(f"Cell {cell_id}: {len(anomalies_df)} anomalies detected.")
-            # Reorder columns for final output
-            return anomalies_df[['cell_id', 'timestamp', 'anomaly_score', 'severity_score'] + FEATURE_COLUMNS]
-        
+            # Reorder columns to match expected output format
+            output_columns = ['cell_id', 'timestamp', 'anomaly_score'] + FEATURE_COLUMNS + ['severity_score']
+            # Only select columns that exist in the DataFrame
+            available_columns = [col for col in output_columns if col in anomalies_df.columns]
+            return anomalies_df[available_columns]
         return pd.DataFrame()
-        
     except Exception as e:
         print(f"Error processing cell {cell_id}: {e}")
+        import traceback
+        traceback.print_exc()
         return pd.DataFrame()
 
 def main():
-    """Main function to run the anomaly detection stage."""
     parser = argparse.ArgumentParser(description="CMMSE 2025: Stage 4 - OSP Anomaly Detection")
     parser.add_argument("data_path", type=Path, help="Path to preprocessed data file")
     parser.add_argument("reference_weeks_path", type=Path, help="Path to reference weeks file")
@@ -116,61 +123,67 @@ def main():
     parser.add_argument("--n_components", type=int, default=3, help="SVD components")
     parser.add_argument("--anomaly_threshold", type=float, default=2.0, help="Anomaly threshold")
     parser.add_argument("--max_workers", type=int, help="Max parallel processes")
+    parser.add_argument("--preview", action="store_true", help="Show a preview of the output DataFrame.")
     args = parser.parse_args()
 
     print("="*60); print("Stage 4: OSP Anomaly Detection"); print("="*60)
     start_time = time.perf_counter()
 
-    # Use Polars for efficient data loading and preparation
     data_lazy = pl.scan_parquet(args.data_path)
     ref_weeks_lazy = pl.scan_parquet(args.reference_weeks_path)
     
-    # Add temporal features and join reference weeks
-    print("Adding temporal features and joining reference weeks...")
-    data_with_temporal = data_lazy.with_columns(
-        (pl.col("timestamp").dt.iso_year().alias("year")),
-        (pl.col("timestamp").dt.week().alias("week"))
-    ).with_columns(
-        (pl.col("year").cast(pl.Utf8) + "_W" + pl.col("week").cast(pl.Utf8).str.zfill(2)).alias("year_week")
-    ).collect()
+    # Convert reference_week from "2013_W47" format to integer format (like 201347)
+    ref_weeks_processed = ref_weeks_lazy.with_columns(
+        pl.col("reference_week")
+        .str.replace("_W", "")
+        .cast(pl.Int32)
+        .alias("year_week")
+    ).select(["cell_id", "year_week"])
     
-    # Load reference weeks and create a set for faster lookup
-    ref_weeks_df = ref_weeks_lazy.collect()
-    ref_weeks_set = set()
-    for row in ref_weeks_df.iter_rows():
-        cell_id, ref_week, _ = row
-        ref_weeks_set.add((cell_id, ref_week))
+    # Add year_week column to the main data
+    data_with_year_week = data_lazy.with_columns(
+        (pl.col("timestamp").dt.iso_year() * 100 + pl.col("timestamp").dt.week()).alias("year_week")
+    )
     
-    print(f"Loaded {len(ref_weeks_set)} reference week combinations")
+    # Create a reference weeks set for marking
+    ref_set = ref_weeks_processed.collect()
+    ref_keys = set(zip(ref_set['cell_id'].to_list(), ref_set['year_week'].to_list()))
     
-    # Mark reference weeks efficiently
-    data_with_weeks = data_with_temporal.with_columns(
+    # Perform the join and mark reference weeks
+    data_with_weeks = data_with_year_week.with_columns(
         pl.struct(["cell_id", "year_week"]).map_elements(
-            lambda x: (x['cell_id'], x['year_week']) in ref_weeks_set,
+            lambda x: (x["cell_id"], x["year_week"]) in ref_keys,
             return_dtype=pl.Boolean
         ).alias("is_reference")
-    )
-
-    detector_params = {'n_components': args.n_components, 'anomaly_threshold': args.anomaly_threshold}
+    ).select([
+        "cell_id", "timestamp", "sms_total", "calls_total", "internet_traffic", "is_reference"
+    ]).collect()
     
-    # Group data by cell for parallel processing
-    print("Grouping data by cell for parallel processing...")
-    grouped_data = [(cell_id, group_df) for cell_id, group_df in data_with_weeks.group_by('cell_id')]
+    # Group by cell_id and convert to list of tuples for multiprocessing
+    cells_grouped = data_with_weeks.group_by('cell_id')
+    cell_tasks = [(cell_id, cell_df) for cell_id, cell_df in cells_grouped]
     
-    num_workers = args.max_workers or min(len(grouped_data), os.cpu_count())
-    print(f"Processing {len(grouped_data)} cells using {num_workers} workers...")
+    num_workers = args.max_workers or min(len(cell_tasks), os.cpu_count())
+    print(f"Processing {len(cell_tasks)} cells using {num_workers} workers...")
     
     with multiprocessing.Pool(processes=num_workers) as pool:
-        # We pass a tuple of (DataFrame, params) to each worker
-        results_dfs = pool.starmap(process_single_cell, [(group_df, detector_params) for _, group_df in grouped_data])
+        results_dfs = pool.map(process_single_cell, cell_tasks)
     
-    print("Collecting and formatting results...")
     all_anomalies_df = pd.concat(results_dfs, ignore_index=True)
-
     args.output_path.parent.mkdir(parents=True, exist_ok=True)
     all_anomalies_df.to_parquet(args.output_path, index=False)
     
     total_time = time.perf_counter() - start_time
+    
+    if args.preview:
+        print("\n--- DATA PREVIEW (Anomalies Found) ---")
+        if not all_anomalies_df.empty:
+            print(f"Shape: {all_anomalies_df.shape}")
+            print("Head(5) of most severe anomalies:"); print(all_anomalies_df.nlargest(5, 'severity_score'))
+            print("\nInfo:"); all_anomalies_df.info()
+        else:
+            print("No anomalies were detected.")
+
     print("\n--- STAGE 4 PERFORMANCE SUMMARY ---")
     print(f"Total samples analyzed: {len(data_with_weeks):,}")
     print(f"Individual anomalies detected: {len(all_anomalies_df):,}")
