@@ -41,14 +41,12 @@ Edge-Mobile-Anomaly-Detection-Apple/
 │   ├── figures/                      # Visualization outputs
 │   ├── benchmarks/                   # Performance benchmark results
 │   └── data/                         # Micro test results by configuration
-└── scripts/                       # Core pipeline implementation (13 scripts)
+└── scripts/                       # Core pipeline implementation (11 scripts)
     ├── 01_data_ingestion.py             # Stage 1: Data loading & preprocessing
     ├── 02_data_preprocessing.py         # Stage 2: Aggregation & validation
     ├── 03_week_selection.py             # Stage 3: Reference week selection
-    ├── 04_anomaly_detection_osp.py      # Stage 4: OSP anomaly detection
-    ├── 04_anomaly_detection_osp_detailed.py  # Enhanced individual tracking
-    ├── 04_anomaly_detection_individual.py   # Individual anomaly detection (Stage 4)
-    ├── 05_analyze_anomalies.py          # Comprehensive anomaly analysis (Stage 5)
+    ├── 04_anomaly_detection_individual.py   # Stage 4: Individual anomaly detection
+    ├── 05_analyze_anomalies.py          # Stage 5: Comprehensive anomaly analysis
     ├── 06_generate_anomaly_map.py       # Geographic anomaly visualization
     ├── 07_plot_extreme_cell_timeline.py # Extreme cell timeline analysis
     ├── analyze_severe_anomalies.py      # Severity analysis tools
@@ -279,34 +277,34 @@ Repository Health:
 Individual Stage Execution:
 ```bash
 # Stage 1: Data Ingestion
-python scripts/01_data_ingestion.py data/raw/ --output_path data/processed/ingested_data.parquet
+uv run scripts/01_data_ingestion.py data/raw/ --output_path data/processed/ingested_data.parquet
 
 # Stage 2: Data Preprocessing  
-python scripts/02_data_preprocessing.py data/processed/ingested_data.parquet --output_path data/processed/preprocessed_data.parquet
+uv run scripts/02_data_preprocessing.py data/processed/ingested_data.parquet --output_path data/processed/preprocessed_data.parquet
 
 # Stage 3: Reference Week Selection
-python scripts/03_week_selection.py data/processed/preprocessed_data.parquet --output_path data/processed/reference_weeks.parquet
+uv run scripts/03_week_selection.py data/processed/preprocessed_data.parquet --output_path data/processed/reference_weeks.parquet
 
-# Stage 4: OSP Anomaly Detection
-python scripts/04_anomaly_detection_osp.py data/processed/preprocessed_data.parquet data/processed/reference_weeks.parquet --output_path results/anomalies.parquet
+# Stage 4: Individual Anomaly Detection
+uv run scripts/04_anomaly_detection_individual.py data/processed/preprocessed_data.parquet data/processed/reference_weeks.parquet --output_path results/individual_anomalies.parquet
 ```
 
 Complete Pipeline:
 ```bash
 # Run complete 5-stage pipeline
-python scripts/run_pipeline.py data/raw/ --output_dir results/
+uv run scripts/run_pipeline.py data/raw/ --output_dir results/
 
 # With custom parameters
-python scripts/run_pipeline.py data/raw/ --output_dir results/ --n_components 5 --anomaly_threshold 2.5 --preview
+uv run scripts/run_pipeline.py data/raw/ --output_dir results/ --n_components 5 --anomaly_threshold 2.5 --preview
 ```
 
 Enhanced Analysis:
 ```bash
-# Generate individual anomaly data
-python scripts/04_anomaly_detection_osp_detailed.py data/processed/preprocessed_data.parquet data/processed/reference_weeks.parquet --individual_output_path results/full_individual_anomalies.parquet
+# Generate comprehensive analysis
+uv run scripts/05_analyze_anomalies.py results/individual_anomalies.parquet --output_dir results/
 
 # Analyze severe anomalies
-python scripts/analyze_severe_anomalies.py results/full_individual_anomalies.parquet --top_n 20 --generate_plots --export_report
+uv run scripts/analyze_severe_anomalies.py results/individual_anomalies.parquet --top_n 20 --generate_plots --export_report
 ```
 
 11. NEXT RESEARCH DIRECTIONS
