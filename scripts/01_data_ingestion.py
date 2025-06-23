@@ -43,10 +43,10 @@ def load_single_file(file_path: str) -> pd.DataFrame:
     
     try:
         # Read file with space-separated values 
-        # Performance optimization: Use delim_whitespace for better performance with C engine
+        # Use regex separator for variable whitespace (pandas current standard)
         df = pd.read_csv(
             file_path,
-            delim_whitespace=True,  # Use C engine for better performance than regex sep
+            sep=r'\s+',  # Use regex for variable whitespace separation
             header=None,
             names=COLUMN_NAMES,
             dtype={
@@ -60,7 +60,6 @@ def load_single_file(file_path: str) -> pd.DataFrame:
                 'internet_traffic': 'float64'
             },
             # Performance optimizations
-            engine='c',  # Use C engine for faster parsing
             low_memory=False,
             na_values=[''],  # Handle empty strings as NaN
             keep_default_na=True  # Keep default NaN handling for robustness
