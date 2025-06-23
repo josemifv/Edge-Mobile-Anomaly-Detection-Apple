@@ -255,7 +255,7 @@ class ParameterSweepBenchmark:
         """Get file size in MB."""
         try:
             return file_path.stat().st_size / 1024 / 1024
-        except:
+        except (FileNotFoundError, OSError):
             return 0.0
     
     def run_parameter_sweep(self, mode: str = "standard"):

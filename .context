@@ -283,10 +283,10 @@ python scripts/04_anomaly_detection_osp.py data/processed/preprocessed_data.parq
 Complete Pipeline:
 ```bash
 # Run complete 5-stage pipeline
-phython scripts/run_pipeline.py data/raw/ --output_dir results/
+python scripts/run_pipeline.py data/raw/ --output_dir results/
 
 # With custom parameters
-phython scripts/run_pipeline.py data/raw/ --output_dir results/ --n_components 5 --anomaly_threshold 2.5 --preview
+python scripts/run_pipeline.py data/raw/ --output_dir results/ --n_components 5 --anomaly_threshold 2.5 --preview
 ```
 
 Enhanced Analysis:
