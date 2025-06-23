@@ -2,18 +2,14 @@
 """
 01_data_ingestion.py
 
-CMMSE 2025: Mobile Network Anomaly Detection Pipeline
-Stage 1: Data Ingestion and Initial Processing
-
-Loads raw telecommunication data files (.txt format), performs initial cleaning,
-and combines them into a single Parquet file.
+CMMSE 2025: Stage 1 - Data Ingestion and Initial Processing
+Performs high-performance, parallel data ingestion from raw text files
+into a consolidated Parquet file.
 """
 
-import pandas as pd
-import os
+import polars as pl
 import argparse
 import time
-import multiprocessing
 from pathlib import Path
 
 # Column definitions for the Milano Telecom Dataset
@@ -22,92 +18,117 @@ COLUMN_NAMES = [
     'call_in', 'call_out', 'internet_traffic'
 ]
 
-def process_single_file(file_path: Path) -> pd.DataFrame | None:
+# Data types definition for Polars
+COLUMN_DTYPES = {
+    'cell_id': pl.Int64,
+    'timestamp_ms': pl.Int64,
+    'country_code': pl.Int32,
+    'sms_in': pl.Float64,
+    'sms_out': pl.Float64,
+    'call_in': pl.Float64,
+    'call_out': pl.Float64,
+    'internet_traffic': pl.Float64
+}
+
+def run_ingestion_stage(input_dir: Path, output_path: Path) -> pl.DataFrame:
     """
-    Loads, cleans, and processes a single raw data file.
+    Ingests all .txt files from a directory using a lazy engine for high performance.
 
     Args:
-        file_path: The path to the input .txt file.
+        input_dir: Directory containing the raw .txt files.
+        output_path: Path to save the resulting Parquet file.
 
     Returns:
-        A pandas DataFrame with the processed data, or None if an error occurs.
+        A Polars DataFrame containing the combined and processed data.
     """
-    print(f"Processing: {file_path.name}")
-    try:
-        # Read file using a regex separator for variable whitespace
-        df = pd.read_csv(
-            file_path,
-            sep=r'\s+',
-            header=None,
-            names=COLUMN_NAMES,
-            dtype={'cell_id': 'Int64', 'timestamp_ms': 'Int64'},
-            low_memory=False
+    print(f"Starting parallel ingestion from: {input_dir}")
+    
+    # Verify input files exist
+    txt_files = list(input_dir.glob("*.txt"))
+    if not txt_files:
+        raise FileNotFoundError(f"No .txt files found in {input_dir}")
+    print(f"Found {len(txt_files)} files to process")
+    
+    # Use scan_csv for lazy reading of all files.
+    # The engine will automatically parallelize the reading process.
+    # Milano dataset uses tab separation with some empty fields
+    lazy_df = pl.scan_csv(
+        source=str(input_dir / "*.txt"),
+        separator='\t',  # Tab-separated values as shown in Milano dataset
+        has_header=False,
+        new_columns=COLUMN_NAMES,
+        schema_overrides=COLUMN_DTYPES,
+        ignore_errors=True,  # Skips rows with parsing errors
+        try_parse_dates=False,  # We'll handle datetime conversion manually
+        rechunk=True,  # Optimize memory layout
+        null_values=['', 'NULL', 'null'],  # Handle empty values as null
+        missing_utf8_is_empty_string=True  # Treat missing strings as empty
+    )
+
+    # Define all transformations in a lazy query plan for optimization.
+    processed_lazy_df = (
+        lazy_df
+        # Convert timestamp from milliseconds to datetime.
+        .with_columns(
+            pl.from_epoch('timestamp_ms', time_unit="ms").alias('timestamp')
         )
-
-        # Convert timestamp and drop rows with conversion errors
-        df['timestamp'] = pd.to_datetime(df['timestamp_ms'], unit='ms', errors='coerce')
-        df.dropna(subset=['timestamp'], inplace=True)
-
+        # Drop rows where timestamp conversion failed
+        .drop_nulls('timestamp')
         # Drop unnecessary columns
-        df.drop(columns=['timestamp_ms', 'country_code'], inplace=True)
+        .drop(['timestamp_ms', 'country_code'])
+        # Reorder columns for consistency
+        .select(['timestamp', 'cell_id', 'sms_in', 'sms_out', 'call_in', 'call_out', 'internet_traffic'])
+    )
 
-        # Reorder for consistency
-        final_cols = ['timestamp', 'cell_id', 'sms_in', 'sms_out', 'call_in', 'call_out', 'internet_traffic']
+    # Execute the optimized query plan and materialize the DataFrame.
+    print("Executing the optimized query plan...")
+    try:
+        final_df = processed_lazy_df.collect(engine='streaming')
         
-        return df[final_cols]
-
+        if len(final_df) == 0:
+            raise ValueError("No valid data rows were processed from input files")
+            
+        print(f"Successfully processed {len(final_df):,} rows")
+        
     except Exception as e:
-        print(f"  ERROR processing {file_path.name}: {e}")
-        return None
+        raise RuntimeError(f"Failed to process data: {str(e)}")
+    
+    # Save the result to a Parquet file with compression.
+    print(f"Saving combined data to {output_path}...")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        final_df.write_parquet(
+            output_path,
+            compression='zstd',  # Better compression than default
+            use_pyarrow=True     # Ensure compatibility
+        )
+    except Exception as e:
+        raise RuntimeError(f"Failed to save parquet file: {str(e)}")
+    
+    return final_df
 
 def main():
-    """Main function to orchestrate the data ingestion stage."""
+    """Main function to run the data ingestion stage."""
     parser = argparse.ArgumentParser(description="CMMSE 2025: Stage 1 - Data Ingestion")
     parser.add_argument("input_dir", type=Path, help="Directory containing raw .txt data files")
     parser.add_argument("--output_path", type=Path, default="outputs/01_ingested_data.parquet", help="Output file path")
-    parser.add_argument("--max_workers", type=int, help="Max parallel processes (default: auto)")
     args = parser.parse_args()
-
+    
     print("="*60)
     print("Stage 1: Data Ingestion")
     print("="*60)
 
     start_time = time.perf_counter()
-
-    # Find input files
-    txt_files = sorted(list(args.input_dir.glob("*.txt")))
-    if not txt_files:
-        raise FileNotFoundError(f"No .txt files found in {args.input_dir}")
-    print(f"Found {len(txt_files)} files to process.")
-
-    # Determine worker count and start parallel processing
-    num_workers = args.max_workers or min(len(txt_files), os.cpu_count())
-    print(f"Using {num_workers} parallel processes...")
-
-    with multiprocessing.Pool(processes=num_workers) as pool:
-        dataframes = pool.map(process_single_file, txt_files)
-
-    # Consolidate results
-    valid_dfs = [df for df in dataframes if df is not None]
-    print(f"\nSuccessfully processed {len(valid_dfs)}/{len(txt_files)} files.")
-
-    if not valid_dfs:
-        raise ValueError("No data files were processed successfully.")
-
-    print("Combining processed files into a single DataFrame...")
-    combined_df = pd.concat(valid_dfs, ignore_index=True)
-
-    # Save output
-    args.output_path.parent.mkdir(parents=True, exist_ok=True)
-    print(f"Saving combined data to {args.output_path}...")
-    combined_df.to_parquet(args.output_path, index=False)
-
-    # Final summary
+    
+    final_df = run_ingestion_stage(args.input_dir, args.output_path)
+    
     total_time = time.perf_counter() - start_time
-    print("\n--- STAGE 1 SUMMARY ---")
-    print(f"Total rows ingested: {len(combined_df):,}")
+    
+    print("\n--- STAGE 1 PERFORMANCE SUMMARY ---")
+    print(f"Total rows ingested: {len(final_df):,}")
     print(f"Total execution time: {total_time:.2f} seconds")
-    print(f"Processing rate: {len(combined_df) / total_time:,.0f} rows/second")
+    print(f"Processing rate: {len(final_df) / total_time:,.0f} rows/second")
     print("✅ Stage 1 completed successfully.")
 
 if __name__ == "__main__":

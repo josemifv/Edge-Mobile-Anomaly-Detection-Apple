@@ -1,6 +1,7 @@
 # Core data processing dependencies
 pandas>=2.3.0
 numpy>=2.2.6
+polars>=0.20.0
 pyarrow>=20.0.0
 
 # Machine learning dependencies  
