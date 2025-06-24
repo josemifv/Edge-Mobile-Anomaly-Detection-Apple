@@ -713,3 +713,50 @@ Files Affected:
 Status: ✅ COMPLETE - Clean Script Organization
 Last Updated: June 2025 - Script Naming Cleanup
 ==========================================
+
+20. REPOSITORY REORGANIZATION COMPLETED
+=======================================
+
+Task: Clean up repository structure with organized utility scripts and reports
+Status: ✅ COMPLETED
+
+Changes Made:
+✅ Moved utility scripts to scripts/utils/ directory:
+   - scripts/utils/data_validation.py (data validation module)
+   - scripts/utils/analyze_severe_anomalies.py (severity analysis tools)
+   - scripts/utils/benchmark_parameter_sweep.py (parameter optimization)
+   - scripts/utils/benchmark_micro_test.py (quick system validation)
+   - scripts/utils/utils_cell_aggregation.py (cell-level aggregation)
+   - scripts/utils/demo_cell_aggregation.py (performance comparison demo)
+   - scripts/utils/validate_pipeline_data.py (pipeline validation)
+
+✅ Created outputs/reports/ directory structure for organized report storage
+
+✅ Cleaned output files from repository root
+
+Benefits:
+- Clear separation between pipeline stages and utility tools
+- Better organization for academic publication
+- Cleaner repository structure for CMMSE 2025 submission
+- Centralized location for analysis reports and outputs
+
+Updated Repository Structure:
+Edge-Mobile-Anomaly-Detection-Apple/
+├── scripts/
+│   ├── 01_data_ingestion.py to 07_plot_extreme_cell_timeline.py (pipeline stages)
+│   ├── run_pipeline.py (pipeline orchestrator)
+│   └── utils/ (utility and analysis scripts)
+│       ├── analyze_severe_anomalies.py
+│       ├── benchmark_micro_test.py
+│       ├── benchmark_parameter_sweep.py
+│       ├── data_validation.py
+│       ├── demo_cell_aggregation.py
+│       ├── utils_cell_aggregation.py
+│       └── validate_pipeline_data.py
+└── outputs/
+    └── reports/ (organized report storage)
+
+==========================================
+Status: ✅ COMPLETE - Repository Reorganized
+Last Updated: June 2024 - Repository Cleanup
+==========================================
