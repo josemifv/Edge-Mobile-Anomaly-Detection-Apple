@@ -14,20 +14,20 @@ Edge-Mobile-Anomaly-Detection-Apple/
 ├── README.md                    # Main project documentation
 ├── LICENSE                      # MIT License
 ├── requirements.txt             # Python dependencies
-├── .env.example                # Environment configuration template
 ├── data/                       # Data storage (symlinked to datasets)
-├── scripts/                    # Core pipeline and utility scripts
+├── scripts/                    # Core pipeline scripts
 │   ├── 01_data_ingestion.py to 07_*.py  # Pipeline stages (1-7)
-│   ├── run_pipeline.py         # Complete pipeline orchestrator
-│   └── utils/                  # Utility and analysis scripts
+│   └── run_pipeline.py         # Complete pipeline orchestrator
 ├── experiments/                # Experimental results and analysis outputs
 ├── outputs/                    # Benchmark results and reports
-├── tests/                      # Test suite for validation
 ├── docs/                       # Supporting documentation
 │   ├── README.md               # Documentation index
 │   ├── VALIDATION_GUIDE.md     # Data validation procedures
 │   └── codex_review.md         # Code review documentation
 └── archive/                    # Historical backups and legacy files
+    ├── backup/                 # Original backup directory
+    ├── tests/                  # Test suite (archived)
+    └── utils/                  # Utility and analysis scripts (archived)
 ```
 
 ## Installation
@@ -220,215 +220,6 @@ python scripts/06_generate_anomaly_map.py results/individual_anomalies.parquet -
 - `cell_classification_anomaly_count.csv` - Cell-level classification data
 - `classification_summary_anomaly_count.txt` - Statistical summary report
 
-## Throughput and Compression Metrics
-
-### Comprehensive Performance Analysis
-
-The project includes a comprehensive throughput and compression metrics system that analyzes benchmark runs in detail:
-
-#### Key Metrics Computed
-
-**1. Stage Throughput (Rows/Second)**
-- Stage 1: Data Ingestion - 319.9M rows processing rate
-- Stage 2: Data Preprocessing - 89.2M rows processing rate  
-- Stage 3: Reference Week Selection - 39.4K references processing rate
-- Stage 4: Individual Anomaly Detection - 5.65M anomalies processing rate
-- Stage 5: Comprehensive Analysis - 10K cells processing rate
-- Row count constants stored for accurate throughput calculations
-
-**2. Compression Ratio Analysis**
-- Ingested → Preprocessed: ~2.2x compression (4.4GB → 2.0GB)
-- Preprocessed → Individual Anomalies: ~13.5x compression (2.0GB → 148MB)
-- End-to-End: ~30x overall compression (4.4GB → 148MB)
-- Space saved percentages and compression efficiency metrics
-
-**3. CPU Efficiency Metrics**
-- Mean and peak CPU utilization percentages
-- Process-specific and system-wide CPU usage analysis
-- Per-core CPU utilization tracking (optimized for Apple Silicon)
-- CPU efficiency scores: work done per CPU utilization unit
-- CPU time product analysis for performance optimization
-
-**4. Thermal Headroom Analysis**
-- Maximum temperature reached during execution
-- Apple Silicon thermal limit tracking (100°C reference)
-- Thermal headroom calculation (limit - max_temp)
-- Thermal efficiency categorization (good/moderate/high)
-- Temperature monitoring integration with powermetrics and sysctl
-
-#### Usage Examples
-
-```bash
-# Compute metrics for existing benchmark
-uv run python scripts/utils/compute_throughput_metrics.py outputs/benchmarks/20241215_143022/
-
-# Run enhanced benchmark with automatic metrics
-uv run python scripts/utils/enhanced_benchmark_runner.py data/raw/ --runs 5 --verbose
-
-# Test metrics computation system
-uv run python scripts/utils/test_throughput_metrics.py --verbose
-```
-
-#### Enhanced Benchmark Runner
-
-The `enhanced_benchmark_runner.py` automatically computes comprehensive metrics for each benchmark run:
-
-```bash
-# Basic enhanced benchmark with automatic metrics
-uv run python scripts/utils/enhanced_benchmark_runner.py data/raw/
-
-# Custom configuration with detailed analysis
-uv run python scripts/utils/enhanced_benchmark_runner.py data/raw/ \
-    --runs 5 --n_components 3 --anomaly_threshold 2.0 --verbose
-```
-
-#### Metrics Output Structure
-
-```
-outputs/benchmarks/YYYYMMDD_HHMMSS/
-├── run_1/, run_2/, ..., run_N/           # Individual run data
-│   ├── run_metrics.json                  # Basic run metrics
-│   ├── resource_monitor.csv              # Resource monitoring data
-│   └── data/*.parquet                    # Pipeline stage outputs
-└── summary/                              # Metrics analysis
-    ├── run_1_throughput_metrics.json     # Individual run metrics
-    ├── run_2_throughput_metrics.json
-    ├── all_runs_throughput_metrics.json  # Consolidated metrics
-    └── throughput_metrics_summary.json   # Summary statistics
-```
-
-#### Academic Applications
-
-- **Performance Characterization**: Complete analysis for CMMSE 2025 submission
-- **Hardware Optimization**: Quantitative Apple Silicon optimization benefits
-- **Benchmarking Framework**: Reproducible metrics for peer review
-- **Thermal Analysis**: Detailed efficiency analysis for hardware research
-- **Compression Studies**: Data reduction efficiency across pipeline stages
-
-## System Resource Monitoring
-
-### Low-Overhead System Monitoring (`scripts/utils/monitoring.py`)
-
-Comprehensive system monitoring utility optimized for Apple Silicon with low-overhead resource tracking:
-
-#### Key Features
-- **Apple Silicon Optimization**: Native ARM64 architecture detection and optimization
-- **Multi-threaded Monitoring**: Background thread with configurable sampling intervals (default: 1 Hz)
-- **Comprehensive Metrics**: CPU, memory, temperature, and frequency monitoring
-- **powermetrics Integration**: Advanced Apple Silicon metrics with root access (graceful fallback)
-- **Non-root Compatible**: Full functionality without requiring elevated privileges
-- **DataFrame Output**: Pandas DataFrame with timestamped resource samples
-
-#### Monitored Metrics
-
-**CPU Metrics:**
-- Process and system-wide CPU utilization percentages
-- Per-core CPU utilization tracking (optimized for M-series processors)
-- CPU efficiency scores and time product analysis
-
-**Memory Metrics:**
-- RSS (Resident Set Size) and VMS (Virtual Memory Size)
-- Peak memory tracking via tracemalloc and getrusage
-- Process and system memory percentage utilization
-
-**Apple Silicon Specific Metrics (requires `powermetrics` privileges):**
-- CPU die temperature monitoring via powermetrics --samplers smc
-- CPU frequency monitoring (max/current) via sysctl
-- Thermal headroom calculation (100°C reference limit)
-- Fallback behavior: Uses sysctl for temperature when powermetrics unavailable
-
-#### Usage Examples
-
-```python
-# Basic monitoring
-from scripts.utils.monitoring import start_monitor, stop_monitor
-monitor = start_monitor()
-# Your code here...
-df = stop_monitor(monitor)
-print(df.describe())
-
-# Custom sampling rate with Apple Silicon metrics
-monitor = start_monitor(interval=0.5, enable_apple_metrics=True)  # 2 Hz sampling
-df = stop_monitor(monitor)
-
-# Get system information
-from scripts.utils.monitoring import get_system_info
-info = get_system_info()
-```
-
-#### Command Line Interface
-
-```bash
-# Test monitoring for 5 seconds
-uv run python scripts/utils/monitoring.py --test --duration 5 --interval 1.0
-
-# Display system information and capabilities
-uv run python scripts/utils/monitoring.py --system-info
-
-# Benchmark monitoring overhead at different sampling rates
-uv run python scripts/utils/monitoring.py --benchmark --duration 10
-
-# Save monitoring results to CSV
-uv run python scripts/utils/monitoring.py --test --duration 10 --output monitor_results.csv
-```
-
-#### Sample Output
-
-```
-System Information:
-==================
-{
-  "system": {
-    "platform": "Darwin",
-    "machine": "arm64", 
-    "is_apple_silicon": true
-  },
-  "cpu": {
-    "cpu_count": 10,
-    "cpu_count_logical": 10
-  },
-  "memory": {
-    "total": 17179869184,
-    "available": 8589934592,
-    "percent": 50.0
-  }
-}
-
-Collected 50 samples
-Average CPU usage: 15.2%
-Peak memory RSS: 245.3 MB
-CPU die temperature: 42.5°C (avg)
-Thermal headroom: 57.5°C
-```
-
-#### powermetrics Requirements and Fallback Behavior
-
-**Root Access (powermetrics):**
-- **Requirement**: `sudo` privileges needed for `powermetrics --samplers smc`
-- **Benefits**: Detailed thermal monitoring, precise CPU die temperature
-- **Usage**: Automatic detection when running with appropriate privileges
-
-**Non-Root Fallback:**
-- **Automatic**: Graceful degradation when powermetrics unavailable
-- **Alternative**: Uses `sysctl -a` for temperature data when possible
-- **Functionality**: All core monitoring features remain available
-- **Performance**: No impact on monitoring performance or accuracy
-
-#### Integration with Benchmarking
-
-The monitoring utilities integrate seamlessly with the benchmarking framework:
-
-```bash
-# Enhanced benchmark with resource monitoring
-uv run scripts/utils/enhanced_benchmark_runner.py data/raw/ --runs 5 --verbose
-
-# Monitoring data automatically collected per benchmark run
-outputs/benchmarks/YYYYMMDD_HHMMSS/
-├── run_1/resource_monitor.csv     # Per-run monitoring data
-├── run_2/resource_monitor.csv
-└── summary/performance_plot.png   # Includes resource utilization analysis
-```
-
 #### Academic Research Applications
 
 - **Apple Silicon Performance Analysis**: Quantitative thermal and efficiency characterization
@@ -436,7 +227,6 @@ outputs/benchmarks/YYYYMMDD_HHMMSS/
 - **Reproducible Research**: Consistent resource tracking across benchmark runs
 - **Hardware Optimization Studies**: Detailed metrics for performance optimization research
 - **Cross-Platform Comparison**: Baseline for comparing different hardware architectures
-
 
 ## Development Status
 ✅ Core pipeline implementation completed and verified for CMMSE 2025 submission

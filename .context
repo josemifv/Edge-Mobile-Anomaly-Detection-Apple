@@ -27,14 +27,13 @@ Edge-Mobile-Anomaly-Detection-Apple/
 ├── LICENSE                        # MIT License (José Miguel Franco-Valiente)
 ├── README.md                      # Complete project documentation
 ├── requirements.txt               # Python dependencies
-├── .env.example                   # Environment configuration template
 ├── data/                          # Data storage
 │   ├── raw@ -> ../../datasets/milan_telecom/raw  # Symlink to raw data
 │   └── processed/                 # Processed data files
 │       ├── ingested_data.parquet     # Stage 1 output (4.4GB, 319.9M rows)
 │       ├── preprocessed_data.parquet # Stage 2 output (2.0GB, 89.2M rows)
 │       └── reference_weeks.parquet   # Stage 3 output (479KB, 39.4K refs)
-├── scripts/                       # Core pipeline + utility scripts
+├── scripts/                       # Core pipeline scripts
 │   ├── 01_data_ingestion.py             # Stage 1: Data loading & preprocessing
 │   ├── 02_data_preprocessing.py         # Stage 2: Aggregation & validation
 │   ├── 03_week_selection.py             # Stage 3: Reference week selection
@@ -42,16 +41,7 @@ Edge-Mobile-Anomaly-Detection-Apple/
 │   ├── 05_analyze_anomalies.py          # Stage 5: Comprehensive anomaly analysis
 │   ├── 06_generate_anomaly_map.py       # Stage 6: Geographic anomaly visualization
 │   ├── 07_plot_extreme_cell_timeline.py # Stage 7: Extreme cell timeline analysis
-│   ├── run_pipeline.py                  # Complete 6-stage pipeline orchestrator
-│   └── utils/                           # Utility and analysis scripts
-│       ├── analyze_severe_anomalies.py  # Severity analysis tools
-│       ├── benchmark_parameter_sweep.py # Comprehensive parameter optimization
-│       ├── benchmark_micro_test.py      # Quick system validation
-│       ├── utils_cell_aggregation.py    # Utility: Cell-level data aggregation
-│       ├── demo_cell_aggregation.py     # Demo: Performance comparison Polars vs Pandas
-│       ├── data_validation.py           # Data validation module
-│       ├── monitoring.py                # System resource monitoring
-│       └── pipeline_benchmark_runner.py # Comprehensive benchmarking framework
+│   └── run_pipeline.py                  # Complete 6-stage pipeline orchestrator
 ├── experiments/                   # Experimental results and analysis outputs
 │   ├── anomalies.parquet             # Standard anomaly detection results
 │   ├── full_individual_anomalies.parquet  # Individual anomaly records (148MB)
@@ -61,15 +51,15 @@ Edge-Mobile-Anomaly-Detection-Apple/
 │   └── data/                         # Micro test results by configuration
 ├── outputs/                       # Benchmark results and reports
 │   └── benchmarks/                   # Organized benchmark session outputs
-├── tests/                         # Test suite for validation
-│   └── test_summary_stats_schema.py # JSON schema validation tests
 ├── docs/                          # Supporting documentation
 │   ├── README.md                     # Documentation index
 │   ├── VALIDATION_GUIDE.md           # Data validation procedures
 │   ├── codex_review.md               # Code review documentation
 │   └── benchmark_results.json        # Historical benchmark results
 └── archive/                       # Historical backups and legacy files
-    └── backup/                       # Original backup directory
+    ├── backup/                       # Original backup directory
+    ├── tests/                        # Test suite (archived)
+    └── utils/                        # Utility and analysis scripts (archived)
 
 3. CORE PIPELINE ARCHITECTURE (5 STAGES - REFACTORED)
 ====================================================
@@ -1792,3 +1782,59 @@ Validation Results:
 Status: ✅ COMPLETE - Step 10 Testing, CI Integration and Commit
 Last Updated: June 2025 - Testing and CI Integration Completed
 ==========================================
+
+31. REPOSITORY ORGANIZATION FOR ACADEMIC REVIEWERS COMPLETED
+============================================================
+
+Task: Reorganize repository structure for academic reviewer clarity and focus
+Status: ✅ COMPLETED
+
+Changes Made:
+✅ Moved tests/ directory to archive/tests/ 
+✅ Moved scripts/utils/ directory to archive/utils/
+✅ Created docs/ directory with comprehensive documentation
+✅ Renamed results/ to experiments/ for clearer academic context  
+✅ Renamed backup/ to archive/backup/ for professional appearance
+✅ Updated .gitignore to reflect new directory structure
+✅ Enhanced README.md with clean repository structure section
+✅ Created docs/README.md explaining documentation organization
+
+Benefits for Academic Publication:
+✅ Ultra-clean main directory focusing on core research pipeline
+✅ Professional academic structure suitable for CMMSE 2025 submission
+✅ Clear separation of main contribution from utility tools
+✅ Organized documentation in dedicated docs/ directory
+✅ All supporting files preserved in archive/ for reference
+✅ Easier navigation for academic reviewers and peer review
+
+Final Repository Structure:
+Edge-Mobile-Anomaly-Detection-Apple/
+├── README.md, LICENSE, requirements.txt
+├── data/, experiments/, outputs/
+├── scripts/                    # Core pipeline scripts only
+│   ├── 01_data_ingestion.py to 07_*.py  # Pipeline stages (1-7)
+│   └── run_pipeline.py         # Complete pipeline orchestrator  
+├── docs/                       # Supporting documentation
+│   ├── README.md, VALIDATION_GUIDE.md, codex_review.md
+│   └── benchmark_results.json
+└── archive/                    # Historical backups and legacy files
+    ├── backup/, tests/, utils/ # Archived components
+
+Commit Details:
+✅ Commit: "chore: Reorganize repository structure for academic reviewers"
+✅ Updated documentation to reflect new organization
+✅ Academic-friendly structure for CMMSE 2025 conference submission
+✅ Repository now presents core research contribution clearly
+
+==========================================
+Status: ✅ COMPLETE - Repository Reorganized for Academic Publication
+Last Updated: June 2025 - Academic Repository Organization
+==========================================
+
+FINAL ACADEMIC REPOSITORY STATUS:
+✅ ULTRA-CLEAN main directory with only core pipeline stages (01-07) + orchestrator
+✅ ALL utility tools preserved in archive/utils/ for reference and future use
+✅ Professional docs/ directory with comprehensive documentation  
+✅ Academic-grade structure suitable for CMMSE 2025 peer review
+✅ Clear separation of research contribution from supporting infrastructure
+✅ Repository ready for academic publication and conference submission
