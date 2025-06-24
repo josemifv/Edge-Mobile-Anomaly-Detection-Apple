@@ -1477,3 +1477,125 @@ Integration with Existing System:
 Status: ✅ COMPLETE - Step 7 Academic Report Generated
 Last Updated: December 2024 - Academic-Grade Benchmark Report
 ==========================================
+
+28. STEP 8: ROBUST ERROR HANDLING AND CLEANUP COMPLETED
+========================================================
+
+Task: Implement robust error handling and cleanup with:
+• Try/except wrapper for each run; on failure capture error log, mark run status, continue
+• If --keep_tmp not set, delete bulky parquet artifacts, keeping only metrics
+• Ensure monitor thread always terminates with finally
+• Log all events to rotating file handler
+Status: ✅ COMPLETED
+
+Implementation Details:
+- Created comprehensive robust error handling system for pipeline execution
+- Enhanced run_pipeline.py with comprehensive try/except blocks for each stage
+- Implemented PipelineStatus class for tracking execution status and error reporting
+- Added rotating file handler (50MB max, 3 backup files) for comprehensive logging
+- Created cleanup_temporary_files() function with --keep_tmp flag support
+- Enhanced monitoring.py with robust thread termination guarantees
+
+Key Features Implemented:
+✅ Try/except wrappers for each pipeline run:
+   • Comprehensive error capture with subprocess.CalledProcessError handling
+   • Timeout handling with subprocess.TimeoutExpired (1 hour per stage)
+   • FileNotFoundError handling for missing scripts
+   • Unexpected error handling with full traceback logging
+   • Status marking with stage-specific exit codes (stage errors: 1-5, timeouts: +10, file not found: +20, unexpected: +30)
+
+✅ Temporary file cleanup with --keep_tmp flag:
+   • Removes bulky parquet artifacts: 01_ingested_data.parquet (4-5GB), 02_preprocessed_data.parquet (2-3GB)
+   • Preserves metrics and small files: 03_reference_weeks.parquet (~500KB), 04_individual_anomalies.parquet
+   • Preserves log files, metrics JSON, and reports directory
+   • Cleanup statistics logging with space freed reporting
+
+✅ Monitor thread termination guarantees:
+   • Enhanced SystemMonitor.stop() with extended timeout (5 seconds)
+   • Thread-safe data collection with proper cleanup
+   • Forced cleanup in finally blocks regardless of errors
+   • Memory cleanup with samples.clear() after DataFrame conversion
+   • Active monitor tracking with ensure_all_monitors_stopped() method
+
+✅ Rotating file handler implementation:
+   • RotatingFileHandler with 50MB max file size and 3 backup files
+   • Comprehensive logging format with function names and line numbers
+   • Both file and console handlers with appropriate log levels
+   • Detailed error logging with traceback information
+   • Progress and status logging throughout pipeline execution
+
+✅ RobustPipelineRunner class:
+   • Complete pipeline wrapper with error handling and recovery
+   • Individual run error isolation (continues on failure)
+   • Comprehensive run metrics collection and JSON persistence
+   • Session-based directory organization with timestamped sessions
+   • Monitor lifecycle management with automatic cleanup
+   • Summary report generation with success/failure statistics
+
+✅ Enhanced run_pipeline.py:
+   • Robust stage execution with run_stage_robust() function
+   • Pipeline status tracking throughout execution
+   • Graceful failure recovery with detailed error reporting
+   • Comprehensive argument parsing with --keep_tmp and --verbose flags
+   • JSON status file generation for debugging and analysis
+   • Final cleanup execution in finally block regardless of success/failure
+
+Files Created/Enhanced:
+✅ scripts/utils/robust_pipeline_runner.py (740 lines) - Complete robust pipeline runner
+✅ scripts/utils/test_robust_error_handling.py (605 lines) - Comprehensive test suite
+✅ scripts/run_pipeline.py - Enhanced with robust error handling (501 lines)
+✅ scripts/utils/monitoring.py - Enhanced with robust thread termination
+
+Testing and Validation:
+✅ Created comprehensive test suite validating:
+   • Monitor thread termination under various conditions
+   • Temporary file cleanup with and without --keep_tmp flag
+   • Rotating log handler functionality and file rotation
+   • Pipeline status tracking and error recording
+   • RobustPipelineRunner initialization and basic functionality
+✅ All error handling components tested and validated
+✅ Thread safety and cleanup guarantees verified
+✅ File cleanup logic tested with different file sizes
+✅ Logging rotation tested with small file sizes to trigger rotation
+
+Production Features:
+✅ Comprehensive error logging with rotating files to prevent disk space issues
+✅ Graceful failure recovery allowing partial pipeline completion analysis
+✅ Resource cleanup guarantees preventing memory leaks and disk space consumption
+✅ Detailed status tracking for debugging and performance analysis
+✅ Thread-safe monitor operations with guaranteed termination
+✅ Academic-grade error reporting suitable for CMMSE 2025 publication
+
+Usage Examples:
+```bash
+# Basic robust pipeline execution
+uv run scripts/run_pipeline.py data/raw/ --output_dir outputs/ --verbose
+
+# With cleanup disabled for debugging
+uv run scripts/run_pipeline.py data/raw/ --keep_tmp --verbose
+
+# Robust benchmark runner with error handling
+uv run scripts/utils/robust_pipeline_runner.py data/raw/ --runs 10 --verbose
+
+# Test error handling implementation
+uv run scripts/utils/test_robust_error_handling.py --verbose
+```
+
+Academic Impact:
+✅ Production-ready error handling for CMMSE 2025 conference submission
+✅ Robust benchmark execution for Apple Silicon optimization research
+✅ Comprehensive logging system for peer review and reproducibility
+✅ Graceful failure recovery for large-scale experimental validation
+✅ Resource management suitable for extended research workflows
+
+Integration with Existing System:
+✅ Compatible with all existing pipeline stages and benchmark tools
+✅ Maintains existing academic documentation standards
+✅ Works with uv tool and Python 3.13.2 environment
+✅ Preserves all analysis outputs while cleaning up intermediate artifacts
+✅ Supports existing --preview, --max_workers, and parameter configuration
+
+==========================================
+Status: ✅ COMPLETE - Step 8 Robust Error Handling and Cleanup
+Last Updated: December 2024 - Robust Error Handling Implementation
+==========================================
