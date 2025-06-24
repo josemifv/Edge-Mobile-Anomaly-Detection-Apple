@@ -58,8 +58,7 @@ def run_micro_benchmark():
             cmd1 = [
                 "uv", "run", "scripts/01_data_ingestion.py",
                 "data/raw/",
-                "--output_path", str(config_output / "ingested_data.parquet"),
-                "--max_workers", str(params["max_workers"])
+                "--output_path", str(config_output / "ingested_data.parquet")
             ]
             subprocess.run(cmd1, check=True, capture_output=True)
             stage1_time = time.perf_counter() - stage1_start

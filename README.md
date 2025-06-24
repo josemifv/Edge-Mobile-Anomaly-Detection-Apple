@@ -282,6 +282,138 @@ outputs/benchmarks/YYYYMMDD_HHMMSS/
 - **Thermal Analysis**: Detailed efficiency analysis for hardware research
 - **Compression Studies**: Data reduction efficiency across pipeline stages
 
+## System Resource Monitoring
+
+### Low-Overhead System Monitoring (`scripts/utils/monitoring.py`)
+
+Comprehensive system monitoring utility optimized for Apple Silicon with low-overhead resource tracking:
+
+#### Key Features
+- **Apple Silicon Optimization**: Native ARM64 architecture detection and optimization
+- **Multi-threaded Monitoring**: Background thread with configurable sampling intervals (default: 1 Hz)
+- **Comprehensive Metrics**: CPU, memory, temperature, and frequency monitoring
+- **powermetrics Integration**: Advanced Apple Silicon metrics with root access (graceful fallback)
+- **Non-root Compatible**: Full functionality without requiring elevated privileges
+- **DataFrame Output**: Pandas DataFrame with timestamped resource samples
+
+#### Monitored Metrics
+
+**CPU Metrics:**
+- Process and system-wide CPU utilization percentages
+- Per-core CPU utilization tracking (optimized for M-series processors)
+- CPU efficiency scores and time product analysis
+
+**Memory Metrics:**
+- RSS (Resident Set Size) and VMS (Virtual Memory Size)
+- Peak memory tracking via tracemalloc and getrusage
+- Process and system memory percentage utilization
+
+**Apple Silicon Specific Metrics (requires `powermetrics` privileges):**
+- CPU die temperature monitoring via powermetrics --samplers smc
+- CPU frequency monitoring (max/current) via sysctl
+- Thermal headroom calculation (100°C reference limit)
+- Fallback behavior: Uses sysctl for temperature when powermetrics unavailable
+
+#### Usage Examples
+
+```python
+# Basic monitoring
+from scripts.utils.monitoring import start_monitor, stop_monitor
+monitor = start_monitor()
+# Your code here...
+df = stop_monitor(monitor)
+print(df.describe())
+
+# Custom sampling rate with Apple Silicon metrics
+monitor = start_monitor(interval=0.5, enable_apple_metrics=True)  # 2 Hz sampling
+df = stop_monitor(monitor)
+
+# Get system information
+from scripts.utils.monitoring import get_system_info
+info = get_system_info()
+```
+
+#### Command Line Interface
+
+```bash
+# Test monitoring for 5 seconds
+uv run python scripts/utils/monitoring.py --test --duration 5 --interval 1.0
+
+# Display system information and capabilities
+uv run python scripts/utils/monitoring.py --system-info
+
+# Benchmark monitoring overhead at different sampling rates
+uv run python scripts/utils/monitoring.py --benchmark --duration 10
+
+# Save monitoring results to CSV
+uv run python scripts/utils/monitoring.py --test --duration 10 --output monitor_results.csv
+```
+
+#### Sample Output
+
+```
+System Information:
+==================
+{
+  "system": {
+    "platform": "Darwin",
+    "machine": "arm64", 
+    "is_apple_silicon": true
+  },
+  "cpu": {
+    "cpu_count": 10,
+    "cpu_count_logical": 10
+  },
+  "memory": {
+    "total": 17179869184,
+    "available": 8589934592,
+    "percent": 50.0
+  }
+}
+
+Collected 50 samples
+Average CPU usage: 15.2%
+Peak memory RSS: 245.3 MB
+CPU die temperature: 42.5°C (avg)
+Thermal headroom: 57.5°C
+```
+
+#### powermetrics Requirements and Fallback Behavior
+
+**Root Access (powermetrics):**
+- **Requirement**: `sudo` privileges needed for `powermetrics --samplers smc`
+- **Benefits**: Detailed thermal monitoring, precise CPU die temperature
+- **Usage**: Automatic detection when running with appropriate privileges
+
+**Non-Root Fallback:**
+- **Automatic**: Graceful degradation when powermetrics unavailable
+- **Alternative**: Uses `sysctl -a` for temperature data when possible
+- **Functionality**: All core monitoring features remain available
+- **Performance**: No impact on monitoring performance or accuracy
+
+#### Integration with Benchmarking
+
+The monitoring utilities integrate seamlessly with the benchmarking framework:
+
+```bash
+# Enhanced benchmark with resource monitoring
+uv run scripts/utils/enhanced_benchmark_runner.py data/raw/ --runs 5 --verbose
+
+# Monitoring data automatically collected per benchmark run
+outputs/benchmarks/YYYYMMDD_HHMMSS/
+├── run_1/resource_monitor.csv     # Per-run monitoring data
+├── run_2/resource_monitor.csv
+└── summary/performance_plot.png   # Includes resource utilization analysis
+```
+
+#### Academic Research Applications
+
+- **Apple Silicon Performance Analysis**: Quantitative thermal and efficiency characterization
+- **CMMSE 2025 Conference**: Production-ready monitoring for academic publication
+- **Reproducible Research**: Consistent resource tracking across benchmark runs
+- **Hardware Optimization Studies**: Detailed metrics for performance optimization research
+- **Cross-Platform Comparison**: Baseline for comparing different hardware architectures
+
 ## Repository Structure
 
 ```
