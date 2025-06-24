@@ -7,6 +7,29 @@ Enhanced mobile network anomaly detection pipeline optimized for Apple Silicon, 
 - Hardware-accelerated processing with Apple Silicon optimization
 - Academic research focus for CMMSE 2025 conference
 
+## Repository Structure
+
+```
+Edge-Mobile-Anomaly-Detection-Apple/
+├── README.md                    # Main project documentation
+├── LICENSE                      # MIT License
+├── requirements.txt             # Python dependencies
+├── .env.example                # Environment configuration template
+├── data/                       # Data storage (symlinked to datasets)
+├── scripts/                    # Core pipeline and utility scripts
+│   ├── 01_data_ingestion.py to 07_*.py  # Pipeline stages (1-7)
+│   ├── run_pipeline.py         # Complete pipeline orchestrator
+│   └── utils/                  # Utility and analysis scripts
+├── experiments/                # Experimental results and analysis outputs
+├── outputs/                    # Benchmark results and reports
+├── tests/                      # Test suite for validation
+├── docs/                       # Supporting documentation
+│   ├── README.md               # Documentation index
+│   ├── VALIDATION_GUIDE.md     # Data validation procedures
+│   └── codex_review.md         # Code review documentation
+└── archive/                    # Historical backups and legacy files
+```
+
 ## Installation
 ```bash
 # Clone repository
@@ -414,48 +437,6 @@ outputs/benchmarks/YYYYMMDD_HHMMSS/
 - **Hardware Optimization Studies**: Detailed metrics for performance optimization research
 - **Cross-Platform Comparison**: Baseline for comparing different hardware architectures
 
-## Repository Structure
-
-```
-Edge-Mobile-Anomaly-Detection-Apple/
-├── data/
-│   ├── raw/                    # Raw telecommunications data (symlinked)
-│   └── processed/              # Processed pipeline outputs
-├── results/                    # Analysis results and outputs
-├── outputs/
-│   └── reports/               # Organized report storage
-├── scripts/
-│   ├── 01_data_ingestion.py         # Pipeline Stage 1
-│   ├── 02_data_preprocessing.py     # Pipeline Stage 2
-│   ├── 03_week_selection.py         # Pipeline Stage 3
-│   ├── 04_anomaly_detection_individual.py  # Pipeline Stage 4
-│   ├── 05_analyze_anomalies.py      # Pipeline Stage 5
-│   ├── 06_generate_anomaly_map.py   # Pipeline Stage 6
-│   ├── 07_plot_extreme_cell_timeline.py # Pipeline Stage 7
-│   ├── run_pipeline.py              # Complete pipeline orchestrator
-│   └── utils/                       # Utility and analysis tools
-│       ├── analyze_severe_anomalies.py    # Severity analysis tools
-│       ├── benchmark_micro_test.py        # Quick system validation
-│       ├── benchmark_parameter_sweep.py   # Parameter optimization
-│       ├── data_validation.py             # Data validation module
-│       ├── demo_cell_aggregation.py       # Performance comparison demo
-│       ├── utils_cell_aggregation.py      # Cell aggregation utilities
-│       └── validate_pipeline_data.py      # Pipeline validation
-├── README.md                   # Project documentation
-├── requirements.txt            # Python dependencies
-└── .context                    # Development context (session resume)
-```
-
-### Script Organization
-
-**Pipeline Scripts** (numbered 01-07): Core pipeline stages for sequential execution  
-**Utility Scripts** (scripts/utils/): Standalone analysis and validation tools  
-**Orchestrator** (run_pipeline.py): Complete pipeline execution with configuration  
-
-This structure provides clear separation between:
-- Main pipeline stages (academic research focus)
-- Utility tools (analysis and validation)
-- Output organization (results vs reports)
 
 ## Development Status
 ✅ Core pipeline implementation completed and verified for CMMSE 2025 submission

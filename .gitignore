@@ -345,5 +345,6 @@ backup/
 # Data directories
 data/raw/
 data/processed/
-results/
-reports/
+experiments/
+outputs/
+archive/
