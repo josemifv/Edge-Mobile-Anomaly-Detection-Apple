@@ -15,6 +15,9 @@ seaborn>=0.13.2
 folium>=0.14.0
 plotly>=5.15.0
 
+# System monitoring dependencies
+psutil>=7.0.0
+
 # Development dependencies (optional)
 pytest>=8.0.0
 black>=24.1.0
