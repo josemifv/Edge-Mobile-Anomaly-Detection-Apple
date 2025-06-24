@@ -197,6 +197,91 @@ python scripts/06_generate_anomaly_map.py results/individual_anomalies.parquet -
 - `cell_classification_anomaly_count.csv` - Cell-level classification data
 - `classification_summary_anomaly_count.txt` - Statistical summary report
 
+## Throughput and Compression Metrics
+
+### Comprehensive Performance Analysis
+
+The project includes a comprehensive throughput and compression metrics system that analyzes benchmark runs in detail:
+
+#### Key Metrics Computed
+
+**1. Stage Throughput (Rows/Second)**
+- Stage 1: Data Ingestion - 319.9M rows processing rate
+- Stage 2: Data Preprocessing - 89.2M rows processing rate  
+- Stage 3: Reference Week Selection - 39.4K references processing rate
+- Stage 4: Individual Anomaly Detection - 5.65M anomalies processing rate
+- Stage 5: Comprehensive Analysis - 10K cells processing rate
+- Row count constants stored for accurate throughput calculations
+
+**2. Compression Ratio Analysis**
+- Ingested → Preprocessed: ~2.2x compression (4.4GB → 2.0GB)
+- Preprocessed → Individual Anomalies: ~13.5x compression (2.0GB → 148MB)
+- End-to-End: ~30x overall compression (4.4GB → 148MB)
+- Space saved percentages and compression efficiency metrics
+
+**3. CPU Efficiency Metrics**
+- Mean and peak CPU utilization percentages
+- Process-specific and system-wide CPU usage analysis
+- Per-core CPU utilization tracking (optimized for Apple Silicon)
+- CPU efficiency scores: work done per CPU utilization unit
+- CPU time product analysis for performance optimization
+
+**4. Thermal Headroom Analysis**
+- Maximum temperature reached during execution
+- Apple Silicon thermal limit tracking (100°C reference)
+- Thermal headroom calculation (limit - max_temp)
+- Thermal efficiency categorization (good/moderate/high)
+- Temperature monitoring integration with powermetrics and sysctl
+
+#### Usage Examples
+
+```bash
+# Compute metrics for existing benchmark
+uv run python scripts/utils/compute_throughput_metrics.py outputs/benchmarks/20241215_143022/
+
+# Run enhanced benchmark with automatic metrics
+uv run python scripts/utils/enhanced_benchmark_runner.py data/raw/ --runs 5 --verbose
+
+# Test metrics computation system
+uv run python scripts/utils/test_throughput_metrics.py --verbose
+```
+
+#### Enhanced Benchmark Runner
+
+The `enhanced_benchmark_runner.py` automatically computes comprehensive metrics for each benchmark run:
+
+```bash
+# Basic enhanced benchmark with automatic metrics
+uv run python scripts/utils/enhanced_benchmark_runner.py data/raw/
+
+# Custom configuration with detailed analysis
+uv run python scripts/utils/enhanced_benchmark_runner.py data/raw/ \
+    --runs 5 --n_components 3 --anomaly_threshold 2.0 --verbose
+```
+
+#### Metrics Output Structure
+
+```
+outputs/benchmarks/YYYYMMDD_HHMMSS/
+├── run_1/, run_2/, ..., run_N/           # Individual run data
+│   ├── run_metrics.json                  # Basic run metrics
+│   ├── resource_monitor.csv              # Resource monitoring data
+│   └── data/*.parquet                    # Pipeline stage outputs
+└── summary/                              # Metrics analysis
+    ├── run_1_throughput_metrics.json     # Individual run metrics
+    ├── run_2_throughput_metrics.json
+    ├── all_runs_throughput_metrics.json  # Consolidated metrics
+    └── throughput_metrics_summary.json   # Summary statistics
+```
+
+#### Academic Applications
+
+- **Performance Characterization**: Complete analysis for CMMSE 2025 submission
+- **Hardware Optimization**: Quantitative Apple Silicon optimization benefits
+- **Benchmarking Framework**: Reproducible metrics for peer review
+- **Thermal Analysis**: Detailed efficiency analysis for hardware research
+- **Compression Studies**: Data reduction efficiency across pipeline stages
+
 ## Repository Structure
 
 ```
