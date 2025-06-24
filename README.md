@@ -49,37 +49,49 @@ All scripts use command-line arguments for configuration. No environment files n
 
 ## Pipeline Stages
 
-The pipeline consists of 5 sequential stages:
+The pipeline consists of 6 sequential stages with modular architecture:
 
 ### Stage 1: Data Ingestion (`01_data_ingestion.py`)
 - Loads raw telecommunications data from .txt files
 - Parallel processing for multiple files
 - Timestamp conversion and initial cleaning
 - Apple Silicon optimized
+- **Output**: Ingested data (parquet format, ~320M rows)
 
 ### Stage 2: Data Preprocessing (`02_data_preprocessing.py`)
 - Aggregates data by cell_id and timestamp
 - Merges directional columns (SMS/calls in+out → totals)
-- Data quality validation
+- Data quality validation and 72% compression
 - Outputs clean, consolidated dataset
+- **Output**: Preprocessed data (parquet format, ~89M rows)
 
 ### Stage 3: Reference Week Selection (`03_week_selection.py`)
 - Applies Median Absolute Deviation (MAD) analysis
 - Selects "normal" reference weeks per cell
 - Configurable selection criteria
 - Provides training data for anomaly detection
+- **Output**: Reference weeks dataset (~39K reference periods)
 
 ### Stage 4: Individual Anomaly Detection (`04_anomaly_detection_individual.py`)
 - Implements Orthogonal Subspace Projection using SVD
 - Per-cell anomaly detection models with individual record tracking
 - Uses reference weeks for normal behavior modeling
 - Outputs individual anomaly records for detailed analysis
+- **Output**: Individual anomaly records (parquet format, ~5M anomalies)
 
 ### Stage 5: Comprehensive Anomaly Analysis (`05_analyze_anomalies.py`)
 - Analyzes individual anomaly records from Stage 4
 - Generates statistical summaries and visualizations
 - Creates temporal and cell-level pattern analysis
 - Produces research-grade reports and insights
+- **Output**: Analysis reports, visualizations, statistical summaries
+
+### Stage 6: Geographic Anomaly Visualization (`06_generate_anomaly_map.py`)
+- Processes individual anomaly records from Stage 4
+- Aggregates records into cell-level statistics for mapping
+- Generates interactive Folium and Plotly maps
+- Percentile-based classification for geographic patterns
+- **Output**: Interactive HTML maps with anomaly distribution visualization
 
 ## Usage
 
@@ -99,6 +111,9 @@ python scripts/04_anomaly_detection_individual.py data/processed/preprocessed_da
 
 # Stage 5: Comprehensive Anomaly Analysis
 python scripts/05_analyze_anomalies.py data/processed/individual_anomalies.parquet --output_dir results/analysis/
+
+# Stage 6: Geographic Anomaly Visualization
+python scripts/06_generate_anomaly_map.py results/individual_anomalies.parquet --output_dir results/maps/
 ```
 
 ### Complete Pipeline Execution
@@ -129,6 +144,61 @@ Tested on **Apple Silicon M4 Pro** with Milan Telecom Dataset (62 files, 319M ro
 - **✅ Apple Silicon optimization**: Leveraging parallel processing and MPS acceleration
 - **✅ Academic reproducibility**: Clean, documented code for research publication
 
+## Geographic Visualization Features
+
+### Interactive Maps Generated
+
+**Stage 6** creates interactive geographic visualizations showing anomaly patterns across the Milano cell network:
+
+#### Data Flow for Geographic Visualization
+1. **Input**: Individual anomaly records from Stage 4 (parquet format)
+2. **Cell-level Aggregation**: Transform individual records into statistical summaries per cell
+3. **Percentile Classification**: Classify cells based on anomaly patterns using percentiles
+4. **Map Generation**: Create interactive Folium and Plotly maps with rich information
+
+#### Map Types and Features
+- **Folium Interactive Maps**: HTML maps with popups, tooltips, and legends
+- **Plotly Choropleth Maps**: Continuous color scales and hover information
+- **Percentile-based Classification**: 5-6 meaningful categories per metric
+- **Milano Grid Integration**: Full geographic coverage with cell boundaries
+
+#### Generated Outputs
+- Interactive HTML maps (Folium and Plotly formats)
+- Cell classification datasets (CSV format)
+- Statistical summary reports
+- Category distribution analysis
+
+### Geographic Visualization Usage
+
+```bash
+# Basic usage with Stage 4 output
+python scripts/06_generate_anomaly_map.py results/individual_anomalies.parquet --output_dir results/maps/
+
+# Custom metrics and classification
+python scripts/06_generate_anomaly_map.py results/individual_anomalies.parquet \
+    --output_dir maps/ --metrics anomaly_count max_severity
+
+# Complete pipeline with geographic visualization
+python scripts/run_pipeline.py data/raw/ --output_dir results/
+python scripts/06_generate_anomaly_map.py results/individual_anomalies.parquet --output_dir results/maps/
+```
+
+### Map Classification Metrics
+
+| Metric | Description | Categories |
+|--------|-------------|------------|
+| **anomaly_count** | Number of anomalies per cell | No Anomalies, Low/Moderate/High/Very High/Extreme Activity |
+| **avg_severity** | Average severity score (σ) | Very Low, Low, Moderate, High, Very High |
+| **max_severity** | Maximum severity observed | Percentile-based classification |
+
+### Example Map Outputs
+- `milano_anomaly_map_anomaly_count_folium.html` - Interactive anomaly count visualization
+- `milano_anomaly_map_avg_severity_plotly.html` - Severity distribution choropleth
+- `cell_classification_anomaly_count.csv` - Cell-level classification data
+- `classification_summary_anomaly_count.txt` - Statistical summary report
+
 ## Development Status
 ✅ Core pipeline implementation completed and verified for CMMSE 2025 submission
+✅ Geographic visualization system integrated and tested
+✅ Complete end-to-end pipeline with interactive mapping capabilities
 

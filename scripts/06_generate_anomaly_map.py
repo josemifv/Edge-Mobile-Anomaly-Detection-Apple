@@ -5,14 +5,44 @@
 CMMSE 2025: Mobile Network Anomaly Detection Pipeline
 Stage 6: Geographic Anomaly Visualization
 
-Generates an interactive map showing cell classifications based on their anomaly patterns
-using percentiles for classification. Combines geospatial data with anomaly analysis results.
+Generates interactive maps showing cell classifications based on their anomaly patterns
+using percentiles for classification. Processes individual anomaly records from Stage 4
+output and aggregates them into cell-level statistics for geographic visualization.
+
+Data Flow:
+- Input: Individual anomaly records (parquet) from Stage 4 
+- Processing: Cell-level aggregation with statistical analysis
+- Output: Interactive Folium and Plotly maps with percentile-based classification
+
+Features:
+- Handles both array and scalar cell_id formats from Stage 4 output
+- Percentile-based classification for meaningful geographic patterns
+- Dual visualization (Folium interactive + Plotly choropleth)
+- Comprehensive statistics and category analysis
+- Milano grid integration with full geographic coverage
 
 Usage:
-    python scripts/06_generate_anomaly_map.py <anomaly_analysis_csv> [--output_dir <dir>]
+    python scripts/06_generate_anomaly_map.py \u003canomaly_parquet_path\u003e [options]
 
-Example:
-    python scripts/06_generate_anomaly_map.py results/test_analysis/cell_anomaly_patterns.csv --output_dir results/maps/
+Required Arguments:
+    anomaly_parquet_path    Path to individual anomalies parquet file from Stage 4
+
+Optional Arguments:
+    --output_dir DIR        Output directory for maps (default: results/maps/)
+    --geojson_path PATH     Milano grid GeoJSON path (default: data/raw/milano-grid.geojson)
+    --metrics METRICS       Classification metrics (default: anomaly_count avg_severity)
+
+Examples:
+    # Basic usage with Stage 4 output
+    python scripts/06_generate_anomaly_map.py results/individual_anomalies.parquet --output_dir results/maps/
+    
+    # With custom metrics and GeoJSON
+    python scripts/06_generate_anomaly_map.py results/individual_anomalies.parquet \
+        --output_dir maps/ --metrics anomaly_count max_severity --geojson_path data/raw/milano-grid.geojson
+    
+    # Complete pipeline integration
+    python scripts/run_pipeline.py data/raw/ --output_dir results/
+    python scripts/06_generate_anomaly_map.py results/individual_anomalies.parquet --output_dir results/maps/
 """
 
 import pandas as pd
@@ -58,22 +88,55 @@ class AnomalyMapGenerator:
         # Milano center coordinates for map centering
         self.milano_center = [45.4642, 9.1900]
         
-    def load_anomaly_data(self, anomaly_csv_path: str) -> pd.DataFrame:
-        """Load and process anomaly analysis results."""
-        print("Loading anomaly analysis data...")
+    def load_anomaly_data(self, anomaly_parquet_path: str) -> pd.DataFrame:
+        """Load and aggregate individual anomaly records from Stage 4 output.
         
-        anomaly_df = pd.read_csv(anomaly_csv_path)
-        print(f"  Loaded anomaly data for {len(anomaly_df)} cells")
+        Data Flow:
+        1. Load individual anomaly records (parquet format from Stage 4)
+        2. Handle cell_id format (convert arrays to scalars if needed)
+        3. Aggregate records by cell_id to get cell-level statistics
+        4. Transform into format suitable for geographic visualization
         
-        # Extract relevant columns and rename for clarity
-        anomaly_df = anomaly_df.rename(columns={
-            'severity_score_count': 'anomaly_count',
-            'severity_score_mean': 'avg_severity',
-            'severity_score_max': 'max_severity',
-            'severity_score_std': 'severity_std'
-        })
+        Returns:
+            DataFrame with cell-level aggregated statistics
+        """
+        print("Loading individual anomaly records...")
         
-        return anomaly_df
+        # Step 1: Read parquet file containing individual anomaly records
+        # Expected format: cell_id, timestamp, anomaly_score, severity_score, traffic features
+        anomalies_df = pd.read_parquet(anomaly_parquet_path)
+        print(f"  Loaded {len(anomalies_df):,} individual anomaly records")
+        
+        # Step 2: Handle cell_id format inconsistencies
+        # Stage 4 output may contain cell_id as arrays [cellId] rather than scalars
+        first_cell_id = anomalies_df['cell_id'].iloc[0]
+        if isinstance(first_cell_id, (list, np.ndarray)):
+            print("  Converting cell_id arrays to integers...")
+            # Extract first element from array format: [4472] -> 4472
+            anomalies_df['cell_id'] = anomalies_df['cell_id'].apply(
+                lambda x: x[0] if isinstance(x, (list, np.ndarray)) and len(x) > 0 else x
+            )
+        
+        # Step 3: Aggregate individual anomaly records into cell-level statistics
+        # Transform from individual anomaly records to per-cell summary metrics
+        cell_stats = anomalies_df.groupby('cell_id').agg({
+            'severity_score': ['count', 'mean', 'max', 'std'],  # Anomaly frequency and severity
+            'sms_total': 'mean',           # Average SMS traffic during anomalies
+            'calls_total': 'mean',         # Average call traffic during anomalies
+            'internet_traffic': 'mean'     # Average internet traffic during anomalies
+        }).reset_index()
+        
+        # Step 4: Flatten hierarchical column names and standardize format
+        # Convert from MultiIndex columns to flat structure for easier processing
+        cell_stats.columns = [
+            'cell_id', 'anomaly_count', 'avg_severity',
+            'max_severity', 'severity_std',
+            'sms_total_mean', 'calls_total_mean', 'internet_traffic_mean'
+        ]
+        
+        print(f"  Aggregated stats for {len(cell_stats)} cells")
+        print(f"  Cell-level metrics: anomaly_count, severity statistics, traffic averages")
+        return cell_stats
     
     def classify_cells_by_percentiles(self, anomaly_df: pd.DataFrame, 
                                     classification_metric: str = 'anomaly_count') -> pd.DataFrame:
@@ -369,7 +432,7 @@ class AnomalyMapGenerator:
             'category_stats': category_stats
         }
     
-    def generate_maps(self, anomaly_csv_path: str, 
+    def generate_maps(self, anomaly_parquet_path: str, 
                      classification_metrics: list = None):
         """Generate all maps and save to output directory."""
         if classification_metrics is None:
@@ -382,7 +445,7 @@ class AnomalyMapGenerator:
         start_time = time.perf_counter()
         
         # Load anomaly data
-        anomaly_df = self.load_anomaly_data(anomaly_csv_path)
+        anomaly_df = self.load_anomaly_data(anomaly_parquet_path)
         
         for metric in classification_metrics:
             if metric not in anomaly_df.columns:
@@ -456,7 +519,8 @@ class AnomalyMapGenerator:
 def main():
     """Main execution function."""
     parser = argparse.ArgumentParser(description="CMMSE 2025: Geographic Anomaly Visualization")
-    parser.add_argument("anomaly_csv_path", help="Path to cell anomaly patterns CSV from Stage 5")
+    parser.add_argument("anomaly_parquet_path", type=Path,
+                       help="Path to individual anomalies parquet file from Stage 4")
     parser.add_argument("--output_dir", default="results/maps/",
                        help="Output directory for generated maps")
     parser.add_argument("--geojson_path", default="data/raw/milano-grid.geojson",
@@ -472,7 +536,7 @@ def main():
         generator = AnomalyMapGenerator(args.geojson_path, args.output_dir)
         
         # Generate maps
-        generator.generate_maps(args.anomaly_csv_path, args.metrics)
+        generator.generate_maps(args.anomaly_parquet_path, args.metrics)
         
     except Exception as e:
         print(f"Map generation failed: {str(e)}")
