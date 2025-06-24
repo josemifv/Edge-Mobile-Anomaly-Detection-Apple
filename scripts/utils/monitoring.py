@@ -331,7 +331,7 @@ class SystemMonitor:
     
     def stop(self) -> pd.DataFrame:
         """
-        Stop monitoring and return collected data as DataFrame.
+        Stop monitoring and return collected data as DataFrame with robust thread termination.
         
         Returns:
             pd.DataFrame: Timestamped system metrics data
@@ -340,19 +340,37 @@ class SystemMonitor:
             logger.warning("Monitor is not running")
             return pd.DataFrame()
         
-        self.is_running = False
+        try:
+            self.is_running = False
+            
+            # Wait for monitor thread to finish with extended timeout
+            if self.monitor_thread and self.monitor_thread.is_alive():
+                self.monitor_thread.join(timeout=5.0)
+                
+                # Force termination if thread is still alive
+                if self.monitor_thread.is_alive():
+                    logger.warning("Monitor thread did not terminate gracefully, forcing cleanup")
+                    # Note: Python doesn't have thread.terminate(), but setting is_running=False
+                    # should cause the monitoring loop to exit naturally
+            
+            # Convert samples to DataFrame safely
+            with self.data_lock:
+                df = pd.DataFrame(self.samples.copy())
+                self.samples.clear()  # Clear samples to free memory
+            
+            logger.info(f"System monitoring stopped. Collected {len(df)} samples.")
+            
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error stopping monitor: {e}")
+            # Return empty DataFrame on error
+            return pd.DataFrame()
         
-        # Wait for monitor thread to finish
-        if self.monitor_thread and self.monitor_thread.is_alive():
-            self.monitor_thread.join(timeout=2.0)
-        
-        # Convert samples to DataFrame
-        with self.data_lock:
-            df = pd.DataFrame(self.samples)
-        
-        logger.info(f"System monitoring stopped. Collected {len(df)} samples.")
-        
-        return df
+        finally:
+            # Ensure monitor state is cleaned up regardless of errors
+            self.is_running = False
+            self.monitor_thread = None
     
     def get_current_metrics(self) -> Dict[str, Any]:
         """Get current system metrics without starting continuous monitoring."""
