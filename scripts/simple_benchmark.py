@@ -9,16 +9,23 @@ import re
 import json
 import statistics
 from pathlib import Path
+import argparse
+import os
+import datetime
 
-def run_pipeline_once(run_id, data_path="data/raw/"):
+def run_pipeline_once(run_id, data_path="data/raw/", output_dir="."):
     """Run the pipeline once and extract timing info"""
     print(f"🚀 Running pipeline iteration {run_id}/10...")
     
     start_time = time.time()
     
+    # Prepare output directory for this run
+    run_output_dir = Path(output_dir) / f"results_run_{run_id}"
+    run_output_dir.mkdir(parents=True, exist_ok=True)
+
     # Run the pipeline
     result = subprocess.run(
-        ["uv", "run", "scripts/run_pipeline.py", data_path, "--output_dir", f"results_run_{run_id}/"],
+        ["uv", "run", "scripts/run_pipeline.py", data_path, "--output_dir", str(run_output_dir)],
         capture_output=True,
         text=True
     )
@@ -57,6 +64,18 @@ def run_pipeline_once(run_id, data_path="data/raw/"):
     return run_data
 
 def main():
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Simple Pipeline Benchmark")
+    parser.add_argument("--data_path", default="data/raw/", help="Path to input data")
+    parser.add_argument("--output_dir", default=".", help="Base directory for outputs")
+    args = parser.parse_args()
+    
+    os.makedirs(args.output_dir, exist_ok=True)
+    # Create timestamped benchmark directory
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    base_output_dir = os.path.join(args.output_dir, f"benchmark_{timestamp}")
+    os.makedirs(base_output_dir, exist_ok=True)
+    print(f"🔖 Storing all outputs in {base_output_dir}")
     print("🔬 Simple Pipeline Benchmark - 10 runs")
     print("=" * 50)
     
@@ -64,7 +83,7 @@ def main():
     
     # Run pipeline 10 times
     for i in range(1, 11):
-        result = run_pipeline_once(i)
+        result = run_pipeline_once(i, args.data_path, base_output_dir)
         if result:
             results.append(result)
         time.sleep(1)  # Brief pause between runs
@@ -105,7 +124,7 @@ def main():
                 print(f"  {stage}: {mean_time:.1f} ± {std_time:.1f}s")
     
     # Save results
-    output_file = "benchmark_results.json"
+    output_file = os.path.join(base_output_dir, "benchmark_results.json")
     with open(output_file, 'w') as f:
         json.dump({
             "summary": {
