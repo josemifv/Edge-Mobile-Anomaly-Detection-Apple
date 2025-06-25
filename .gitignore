@@ -306,6 +306,9 @@ logs/
 outputs/
 results/
 experiments/
+# But allow experiments files except parquet
+!experiments/
+experiments/**/*.parquet
 wandb/
 mlruns/
 tensorboard_logs/
@@ -345,6 +348,5 @@ backup/
 # Data directories
 data/raw/
 data/processed/
-experiments/
 outputs/
 archive/
