@@ -1,8 +1,8 @@
-# Experimentos de Benchmark
+# Benchmark Experiments
 
-Este directorio contiene los resultados de los experimentos de benchmark realizados en diferentes plataformas y versiones de Python.
+This directory contains the results of benchmark experiments performed on different platforms and Python versions.
 
-## Estructura del Directorio
+## Directory Structure
 
 ```
 experiments/
@@ -29,33 +29,33 @@ experiments/
                     └── severity_distribution.png
 ```
 
-## Archivos Incluidos
+## Included Files
 
-- **pipeline_execution.log**: Logs detallados de la ejecución del pipeline
-- **pipeline_status.json**: Estado y métricas de rendimiento del pipeline
-- **benchmark_results.json**: Resultados consolidados del benchmark (solo M2 Pro)
-- **reports/**: Visualizaciones y análisis de anomalías
-  - **anomaly_analysis_summary.txt**: Resumen textual del análisis
-  - **anomalies_by_hour.png**: Distribución temporal de anomalías
-  - **severity_distribution.png**: Distribución por severidad
+- **pipeline_execution.log**: Detailed pipeline execution logs
+- **pipeline_status.json**: Pipeline status and performance metrics
+- **benchmark_results.json**: Consolidated benchmark results (M2 Pro only)
+- **reports/**: Visualizations and anomaly analysis
+  - **anomaly_analysis_summary.txt**: Textual analysis summary
+  - **anomalies_by_hour.png**: Temporal distribution of anomalies
+  - **severity_distribution.png**: Distribution by severity
 
-## Archivos Excluidos
+## Excluded Files
 
-Los siguientes tipos de archivos están excluidos del repositorio por tamaño:
-- **\*.parquet**: Archivos de datos binarios (muy pesados)
-- **03_reference_weeks.parquet**: Datos de referencia semanal
-- **04_individual_anomalies.parquet**: Datos individuales de anomalías
+The following file types are excluded from the repository due to size:
+- **\*.parquet**: Binary data files (very heavy)
+- **03_reference_weeks.parquet**: Weekly reference data
+- **04_individual_anomalies.parquet**: Individual anomaly data
 
-## Plataformas Testadas
+## Tested Platforms
 
-- **M2 Pro**: 10 runs con Python 3.13.2
-- **M4 Pro**: 10 runs con Python 3.13.5
+- **M2 Pro**: 10 runs with Python 3.13.2
+- **M4 Pro**: 10 runs with Python 3.13.5
 
-## Fecha de Experimentos
+## Experiment Dates
 
-- **M2 Pro**: 25 de junio de 2025, 19:30:55
-- **M4 Pro**: 25 de junio de 2025, 21:01:21
+- **M2 Pro**: June 25, 2025, 19:30:55
+- **M4 Pro**: June 25, 2025, 21:01:21
 
-## Acceso a Datos Completos
+## Access to Complete Data
 
-Para acceder a los archivos `.parquet` completos, contactar al equipo de investigación o ejecutar los benchmarks localmente.
+To access the complete `.parquet` files, contact the research team or run the benchmarks locally.
