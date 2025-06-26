@@ -1,0 +1,39 @@
+{
+  "total_duration": 167.5659427089995,
+  "successful": true,
+  "failed_stage": null,
+  "error_message": null,
+  "stage_results": {
+    "1": {
+      "status": "success",
+      "duration": 68.77965062500152,
+      "description": "Data Ingestion",
+      "error": null
+    },
+    "2": {
+      "status": "success",
+      "duration": 26.024874249997083,
+      "description": "Data Preprocessing & Aggregation",
+      "error": null
+    },
+    "3": {
+      "status": "success",
+      "duration": 2.6044574169936823,
+      "description": "Reference Week Selection",
+      "error": null
+    },
+    "4": {
+      "status": "success",
+      "duration": 58.331406791003246,
+      "description": "OSP Anomaly Detection",
+      "error": null
+    },
+    "5": {
+      "status": "success",
+      "duration": 11.8230309999999,
+      "description": "Comprehensive Anomaly Analysis",
+      "error": null
+    }
+  },
+  "timestamp": "2025-06-26T11:46:53.991676"
+}
