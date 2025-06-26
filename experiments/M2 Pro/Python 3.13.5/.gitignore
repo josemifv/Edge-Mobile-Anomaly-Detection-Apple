@@ -1,0 +1,11 @@
+# Exclude heavy parquet files
+*.parquet
+**/03_reference_weeks.parquet
+**/04_individual_anomalies.parquet
+
+# Allow other result files
+!*.json
+!*.log
+!*.txt
+!*.png
+!*.md

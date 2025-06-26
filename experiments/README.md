@@ -7,8 +7,18 @@ This directory contains the results of benchmark experiments performed on differ
 ```
 experiments/
 ├── M2 Pro/
-│   └── Python 3.13.2/
-│       └── benchmark_20250625_193055/
+│   ├── Python 3.13.2/
+│   │   └── benchmark_20250625_193055/
+│   │       ├── benchmark_results.json
+│   │       └── results_run_[1-10]/
+│   │           ├── pipeline_execution.log
+│   │           ├── pipeline_status.json
+│   │           └── reports/
+│   │               ├── anomaly_analysis_summary.txt
+│   │               ├── anomalies_by_hour.png
+│   │               └── severity_distribution.png
+│   └── Python 3.13.5/
+│       └── benchmark_[timestamp]/
 │           ├── benchmark_results.json
 │           └── results_run_[1-10]/
 │               ├── pipeline_execution.log
@@ -48,12 +58,16 @@ The following file types are excluded from the repository due to size:
 
 ## Tested Platforms
 
-- **M2 Pro**: 10 runs with Python 3.13.2
+- **M2 Pro**: 
+  - Python 3.13.2: 10 runs
+  - Python 3.13.5: 10 runs
 - **M4 Pro**: 10 runs with Python 3.13.5
 
 ## Experiment Dates
 
-- **M2 Pro**: June 25, 2025, 19:30:55
+- **M2 Pro**: 
+  - Python 3.13.2: June 25, 2025, 19:30:55
+  - Python 3.13.5: June 26, 2025, [timestamp]
 - **M4 Pro**: June 25, 2025, 21:01:21
 
 ## Access to Complete Data
