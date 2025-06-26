@@ -303,15 +303,16 @@ checkpoints/
 
 # Logs and outputs
 logs/
-outputs/
 results/
-experiments/
-# But allow experiments files except parquet
+
+# Experiments directory - allow all except specific file types
 !experiments/
 experiments/**/*.parquet
-wandb/
-mlruns/
-tensorboard_logs/
+experiments/**/.DS_Store
+
+# Other outputs (but not experiments)
+outputs/
+!outputs/experiments/
 
 # Configuration files with sensitive data
 config.yaml
