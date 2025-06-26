@@ -304,15 +304,12 @@ checkpoints/
 # Logs and outputs
 logs/
 results/
+outputs/
 
 # Experiments directory - allow all except specific file types
 !experiments/
-experiments/**/*.parquet
-experiments/**/.DS_Store
-
-# Other outputs (but not experiments)
-outputs/
-!outputs/experiments/
+#experiments/**/*.parquet
+#experiments/**/.DS_Store
 
 # Configuration files with sensitive data
 config.yaml
