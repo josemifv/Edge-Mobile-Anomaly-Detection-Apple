@@ -1,0 +1,122 @@
+{
+  "summary": {
+    "successful_runs": 10,
+    "total_runs": 10,
+    "mean_total_time": 236.1770604610443,
+    "mean_pipeline_time": 235.955,
+    "std_total_time": 8.193342049731347,
+    "std_pipeline_time": 8.208876293379019
+  },
+  "individual_runs": [
+    {
+      "run_id": 1,
+      "success": true,
+      "total_time": 237.68436574935913,
+      "pipeline_time": 237.55,
+      "stage_1": 79.06,
+      "stage_2": 82.3,
+      "stage_3": 5.56,
+      "stage_4": 59.03,
+      "stage_5": 11.6
+    },
+    {
+      "run_id": 2,
+      "success": true,
+      "total_time": 227.39845395088196,
+      "pipeline_time": 227.13,
+      "stage_1": 72.76,
+      "stage_2": 81.1,
+      "stage_3": 5.37,
+      "stage_4": 56.31,
+      "stage_5": 11.59
+    },
+    {
+      "run_id": 3,
+      "success": true,
+      "total_time": 232.98356294631958,
+      "pipeline_time": 232.66,
+      "stage_1": 76.45,
+      "stage_2": 83.22,
+      "stage_3": 3.24,
+      "stage_4": 58.16,
+      "stage_5": 11.59
+    },
+    {
+      "run_id": 4,
+      "success": true,
+      "total_time": 236.4551239013672,
+      "pipeline_time": 236.17000000000002,
+      "stage_1": 73.29,
+      "stage_2": 88.36,
+      "stage_3": 5.49,
+      "stage_4": 57.44,
+      "stage_5": 11.59
+    },
+    {
+      "run_id": 5,
+      "success": true,
+      "total_time": 238.04896521568298,
+      "pipeline_time": 237.82,
+      "stage_1": 74.93,
+      "stage_2": 87.82,
+      "stage_3": 5.83,
+      "stage_4": 57.7,
+      "stage_5": 11.54
+    },
+    {
+      "run_id": 6,
+      "success": true,
+      "total_time": 228.2941927909851,
+      "pipeline_time": 228.07,
+      "stage_1": 73.09,
+      "stage_2": 82.66,
+      "stage_3": 3.26,
+      "stage_4": 57.55,
+      "stage_5": 11.51
+    },
+    {
+      "run_id": 7,
+      "success": true,
+      "total_time": 231.99285006523132,
+      "pipeline_time": 231.8,
+      "stage_1": 72.5,
+      "stage_2": 84.76,
+      "stage_3": 5.55,
+      "stage_4": 57.48,
+      "stage_5": 11.51
+    },
+    {
+      "run_id": 8,
+      "success": true,
+      "total_time": 252.472651720047,
+      "pipeline_time": 252.27,
+      "stage_1": 72.96,
+      "stage_2": 106.12,
+      "stage_3": 3.54,
+      "stage_4": 58.18,
+      "stage_5": 11.47
+    },
+    {
+      "run_id": 9,
+      "success": true,
+      "total_time": 229.34555006027222,
+      "pipeline_time": 229.17,
+      "stage_1": 72.6,
+      "stage_2": 80.3,
+      "stage_3": 5.69,
+      "stage_4": 59.05,
+      "stage_5": 11.53
+    },
+    {
+      "run_id": 10,
+      "success": true,
+      "total_time": 247.09488821029663,
+      "pipeline_time": 246.91,
+      "stage_1": 79.37,
+      "stage_2": 88.6,
+      "stage_3": 5.74,
+      "stage_4": 61.71,
+      "stage_5": 11.49
+    }
+  ]
+}

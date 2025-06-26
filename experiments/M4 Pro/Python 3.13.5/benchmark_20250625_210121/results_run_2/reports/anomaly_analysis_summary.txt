@@ -1,0 +1,65 @@
+CMMSE 2025: Anomaly Analysis Summary
+========================================
+
+Total Anomalies Detected: 4,848,320
+Unique Cells with Anomalies: 10,000
+Date Range: 2013-10-31 to 2014-01-01
+
+Severity Score Statistics:
+count    4848320.00
+mean           9.38
+std           59.64
+min            2.00
+25%            2.36
+50%            3.02
+75%            4.96
+max        16216.55
+Name: severity_score, dtype: float64
+
+Top 5 Cells with Most Anomalies:
+cell_id
+4471    4532
+4472    4528
+4771    4510
+4572    4498
+5439    4463
+Name: count, dtype: int64
+
+Anomalies by Day of Week:
+day_of_week
+Tuesday      887745
+Wednesday    885851
+Friday       830888
+Monday       733810
+Thursday     707366
+Saturday     425290
+Sunday       377370
+Name: count, dtype: int64
+
+Anomalies by Hour of Day:
+hour
+0      65702
+1      71377
+2      83353
+3      92927
+4      90501
+5      70555
+6      75907
+7     152547
+8     252643
+9     327352
+10    369633
+11    336227
+12    226916
+13    245352
+14    266987
+15    358823
+16    488915
+17    433918
+18    240883
+19    146596
+20    133341
+21    116977
+22     94895
+23    105993
+dtype: int64

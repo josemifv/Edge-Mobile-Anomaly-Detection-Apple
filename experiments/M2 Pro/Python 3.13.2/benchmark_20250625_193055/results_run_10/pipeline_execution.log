@@ -1,0 +1,29 @@
+2025-06-25 20:06:18,990 - pipeline_runner - INFO - main:382 - Starting robust pipeline execution
+2025-06-25 20:06:18,990 - pipeline_runner - INFO - main:383 - Input directory: data/raw
+2025-06-25 20:06:18,990 - pipeline_runner - INFO - main:384 - Output directory: experiments/benchmark_20250625_193055/results_run_10
+2025-06-25 20:06:18,990 - pipeline_runner - INFO - main:385 - Reports directory: experiments/benchmark_20250625_193055/results_run_10/reports
+2025-06-25 20:06:18,990 - pipeline_runner - INFO - main:386 - Pipeline parameters: n_components=3, threshold=2.0
+2025-06-25 20:06:18,990 - pipeline_runner - INFO - main:400 - Preparing Stage 1: Data Ingestion
+2025-06-25 20:06:18,990 - pipeline_runner - INFO - run_stage_robust:159 - Starting Stage 1: Data Ingestion
+2025-06-25 20:07:38,362 - pipeline_runner - INFO - run_stage_robust:179 - Stage 1 completed successfully in 79.37 seconds
+2025-06-25 20:07:38,363 - pipeline_runner - INFO - main:405 - Preparing Stage 2: Data Preprocessing
+2025-06-25 20:07:38,363 - pipeline_runner - INFO - run_stage_robust:159 - Starting Stage 2: Data Preprocessing & Aggregation
+2025-06-25 20:09:06,964 - pipeline_runner - INFO - run_stage_robust:179 - Stage 2 completed successfully in 88.60 seconds
+2025-06-25 20:09:06,968 - pipeline_runner - INFO - main:410 - Preparing Stage 3: Reference Week Selection
+2025-06-25 20:09:06,969 - pipeline_runner - INFO - run_stage_robust:159 - Starting Stage 3: Reference Week Selection
+2025-06-25 20:09:12,711 - pipeline_runner - INFO - run_stage_robust:179 - Stage 3 completed successfully in 5.74 seconds
+2025-06-25 20:09:12,712 - pipeline_runner - INFO - main:415 - Preparing Stage 4: OSP Anomaly Detection
+2025-06-25 20:09:12,713 - pipeline_runner - INFO - run_stage_robust:159 - Starting Stage 4: OSP Anomaly Detection
+2025-06-25 20:10:14,425 - pipeline_runner - INFO - run_stage_robust:179 - Stage 4 completed successfully in 61.71 seconds
+2025-06-25 20:10:14,426 - pipeline_runner - INFO - main:428 - Preparing Stage 5: Comprehensive Anomaly Analysis
+2025-06-25 20:10:14,426 - pipeline_runner - INFO - run_stage_robust:159 - Starting Stage 5: Comprehensive Anomaly Analysis
+2025-06-25 20:10:25,918 - pipeline_runner - INFO - run_stage_robust:179 - Stage 5 completed successfully in 11.49 seconds
+2025-06-25 20:10:25,919 - pipeline_runner - INFO - main:437 - Pipeline completed successfully in 246.93 seconds
+2025-06-25 20:10:25,919 - pipeline_runner - INFO - main:482 - Starting cleanup phase...
+2025-06-25 20:10:25,919 - pipeline_runner - INFO - cleanup_temporary_files:277 - Starting cleanup of temporary parquet artifacts...
+2025-06-25 20:10:25,959 - pipeline_runner - INFO - cleanup_temporary_files:301 - Removed 01_ingested_data.parquet (3913.3 MB)
+2025-06-25 20:10:25,975 - pipeline_runner - INFO - cleanup_temporary_files:301 - Removed 02_preprocessed_data.parquet (1934.9 MB)
+2025-06-25 20:10:25,975 - pipeline_runner - INFO - cleanup_temporary_files:310 - Cleanup completed: 2 files removed
+2025-06-25 20:10:25,975 - pipeline_runner - INFO - cleanup_temporary_files:311 - Space freed: 5848.1 MB (5.71 GB)
+2025-06-25 20:10:25,981 - pipeline_runner - INFO - main:490 - Pipeline status saved to experiments/benchmark_20250625_193055/results_run_10/pipeline_status.json
+2025-06-25 20:10:25,981 - pipeline_runner - INFO - main:498 - Pipeline execution completed (with or without errors)
